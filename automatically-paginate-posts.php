@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Automatically Paginate Posts
-Plugin URI:
+Plugin URI: http://www.thinkoomph.com/plugins-modules/automatically-paginate-posts/
 Description: Automatically inserts the &lt;!--nextpage--&gt; Quicktag into WordPress posts, pages, or custom post type content.
 Version: 0.1
 Author: Erick Hitter (Oomph, Inc.)
@@ -108,7 +108,7 @@ class Automatically_Paginate_Posts {
 	 * Register settings and settings sections
 	 * Settings appear on the Reading page
 	 *
-	 * @uses register_setting, add_settings_section, add_settings_field
+	 * @uses register_setting, add_settings_section, __, __return_false, add_settings_field
 	 * @action admin_init
 	 * @return null
 	 */
@@ -116,7 +116,7 @@ class Automatically_Paginate_Posts {
 		register_setting( 'reading', $this->option_name_post_types, array( $this, 'sanitize_supported_post_types' ) );
 		register_setting( 'reading', $this->option_name_num_pages, array( $this, 'sanitize_num_pages' ) );
 
-		add_settings_section( 'autopaging', 'Automatically Paginate Posts', '__return_false', 'reading' );
+		add_settings_section( 'autopaging', __( 'Automatically Paginate Posts', 'autopaging' ), '__return_false', 'reading' );
 		add_settings_field( 'autopaging-post-types', __( 'Supported post types:', 'autopaging' ), array( $this, 'settings_field_post_types' ), 'reading', 'autopaging' );
 		add_settings_field( 'autopaging-num-pages', __( 'Number of pages to split content into:', 'autopaging' ), array( $this, 'settings_field_num_pages' ), 'reading', 'autopaging' );
 	}
@@ -210,13 +210,13 @@ class Automatically_Paginate_Posts {
 	/**
 	 * Add autopaging metabox
 	 *
-	 * @uses this::get_option, add_metabox
+	 * @uses add_metabox, __
 	 * @action add_meta_box
 	 * @return null
 	 */
 	public function action_add_meta_boxes() {
 		foreach ( $this->post_types as $post_type ) {
-			add_meta_box( 'autopaging', 'Post Autopaging', array( $this, 'meta_box_autopaging' ), $post_type, 'side' );
+			add_meta_box( 'autopaging', __( 'Post Autopaging', 'autopaging' ), array( $this, 'meta_box_autopaging' ), $post_type, 'side' );
 		}
 	}
 
@@ -224,7 +224,7 @@ class Automatically_Paginate_Posts {
 	 * Render autopaging metabox
 	 *
 	 * @param object $post
-	 * @uses esc_attr, checked, wp_nonce_field
+	 * @uses esc_attr, checked, _e, __, wp_nonce_field
 	 * @return string
 	 */
 	public function meta_box_autopaging( $post ) {
@@ -232,8 +232,8 @@ class Automatically_Paginate_Posts {
 		<p>
 			<input type="checkbox" name="<?php echo esc_attr( $this->meta_key_disable_autopaging ); ?>" id="<?php echo esc_attr( $this->meta_key_disable_autopaging ); ?>_checkbox" value="1"<?php checked( (bool) get_post_meta( $post->ID, $this->meta_key_disable_autopaging, true ) ); ?> /> <label for="<?php echo esc_attr( $this->meta_key_disable_autopaging ); ?>_checkbox">Disable autopaging for this post?</label>
 		</p>
-		<p class="description">Check the box above to prevent this post from automatically being split over two pages.</p>
-		<p class="description">Note that if the <code>&lt;!--nextpage--&gt;</code> Quicktag is used to manually page this post, automatic paging won't be applied, regardless of the setting above.</p>
+		<p class="description"><?php _e( 'Check the box above to prevent this post from automatically being split over multiple pages.', 'autopaging' ); ?></p>
+		<p class="description"><?php printf( __( 'Note that if the %1$s Quicktag is used to manually page this post, automatic paging won\'t be applied, regardless of the setting above.', 'autopaging' ), '<code>&lt;!--nextpage--&gt;</code>' ); ?></p>
 	<?php
 		wp_nonce_field( $this->meta_key_disable_autopaging, $this->meta_key_disable_autopaging . '_wpnonce' );
 	}
