@@ -1,5 +1,5 @@
 === Automatically Paginate Posts ===
-Contributors: ethitter
+Contributors: ethitter, thinkoomph
 Donate link:
 Tags: paginate, nextpage, Quicktag
 Requires at least: 3.4
