@@ -27,6 +27,7 @@ class Automatically_Paginate_Posts {
 	 * Class variables
 	 */
 	private $post_types;
+	private $num_pages;
 
 	private $meta_key_disable_autopaging = '_disable_autopaging';
 
@@ -49,6 +50,11 @@ class Automatically_Paginate_Posts {
 	public function action_init() {
 		//Post types
 		$this->post_types = apply_filters( 'autopaging_post_types', array( 'post', 'page' ) );
+
+		//Number of pages to break over
+		$this->num_pages = absint( apply_filters( 'autopaging_num_pages_default', 2 ) );
+		if ( 0 == $this->num_pages )
+			$this->num_pages = 2;
 	}
 
 	/**
@@ -115,6 +121,12 @@ class Automatically_Paginate_Posts {
 		if ( ! is_admin() ) {
 			foreach( $posts as $the_post ) {
 				if ( in_array( $the_post->post_type, $this->post_types ) && ! preg_match( '#<!--nextpage-->#i', $the_post->post_content ) && ! (bool) get_post_meta( $the_post->ID, $this->meta_key_disable_autopaging, true ) ) {
+					//In-time filtering of number of pages to break over, based on post data. If value is less than 2, nothing should be done.
+					$num_pages = absint( apply_filters( 'autopaging_num_pages', absint( $this->num_pages ), $the_post ) );
+
+					if ( $num_pages < 2 )
+						continue;
+
 					//Start with post content, but alias to protect the raw content.
 					$content = $the_post->post_content;
 
@@ -131,7 +143,7 @@ class Automatically_Paginate_Posts {
 						$content = explode( "\r\n\r\n", $content );
 
 						//Determine where to insert Quicktag and insert
-						$insert_before = ceil( count( $content ) / 2 );
+						$insert_before = ceil( count( $content ) / $num_pages );
 
 						$content[ $insert_before ] = '<!--nextpage-->' . $content[ $insert_before ];
 
