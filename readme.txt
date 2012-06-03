@@ -49,5 +49,6 @@ You can also use the filter `autopaging_post_types` to add support by appending 
 * Initial release.
 
 == Upgrade Notice ==
+
 = 0.1 =
 Initial release
