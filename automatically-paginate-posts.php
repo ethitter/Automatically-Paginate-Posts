@@ -59,7 +59,9 @@ class Automatically_Paginate_Posts {
 	 * @return null
 	 */
 	function action_add_meta_boxes() {
-		add_meta_box( 'autopaging', 'Post Autopaging', array( $this, 'meta_box_autopaging' ), 'post', 'side' );
+		foreach ( $this->post_types as $post_type ) {
+			add_meta_box( 'autopaging', 'Post Autopaging', array( $this, 'meta_box_autopaging' ), $post_type, 'side' );
+		}
 	}
 
 	/**
