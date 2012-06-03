@@ -29,8 +29,12 @@ class Automatically_Paginate_Posts {
 	private $post_types;
 	private $post_types_default = array( 'post' );
 
+	private $num_pages;
+	private $num_pages_default = 2;
+
 	//Ensure option names match values in this::uninstall
 	private $option_name_post_types = 'autopaging_post_types';
+	private $option_name_num_pages = 'autopaging_num_pages';
 
 	private $meta_key_disable_autopaging = '_disable_autopaging';
 
@@ -57,6 +61,7 @@ class Automatically_Paginate_Posts {
 
 	/**
 	 * Set post types this plugin can act on, either from Reading page or via filter
+	 * Also sets default number of pages to break content over, either from Reading page or via filter
 	 *
 	 * @uses apply_filters, get_option
 	 * @action init
@@ -65,6 +70,11 @@ class Automatically_Paginate_Posts {
 	public function action_init() {
 		//Post types
 		$this->post_types = apply_filters( 'autopaging_post_types', get_option( $this->option_name_post_types, $this->post_types_default ) );
+
+		//Number of pages to break over
+		$this->num_pages = absint( apply_filters( 'autopaging_num_pages_default', get_option( $this->option_name_num_pages, $this->num_pages_default ) ) );
+		if ( 0 == $this->num_pages )
+			$this->num_pages = 2;
 	}
 
 	/**
@@ -77,6 +87,7 @@ class Automatically_Paginate_Posts {
 	 */
 	public function uninstall() {
 		delete_option( 'autopaging_post_types' );
+		delete_option( 'autopaging_num_pages' );
 	}
 
 	/**
@@ -103,9 +114,11 @@ class Automatically_Paginate_Posts {
 	 */
 	public function action_admin_init() {
 		register_setting( 'reading', $this->option_name_post_types, array( $this, 'sanitize_supported_post_types' ) );
+		register_setting( 'reading', $this->option_name_num_pages, array( $this, 'sanitize_num_pages' ) );
 
 		add_settings_section( 'autopaging', 'Automatically Paginate Posts', '__return_false', 'reading' );
-		add_settings_field( 'autopaging-post-types', __( 'Supported post types', 'autopaging' ), array( $this, 'settings_field_post_types' ), 'reading', 'autopaging' );
+		add_settings_field( 'autopaging-post-types', __( 'Supported post types:', 'autopaging' ), array( $this, 'settings_field_post_types' ), 'reading', 'autopaging' );
+		add_settings_field( 'autopaging-num-pages', __( 'Number of pages to split content into:', 'autopaging' ), array( $this, 'settings_field_num_pages' ), 'reading', 'autopaging' );
 	}
 
 	/**
@@ -162,6 +175,36 @@ class Automatically_Paginate_Posts {
 		}
 
 		return $post_types_sanitized;
+	}
+
+	/**
+	 * Render dropdown for choosing number of pages to break content over
+	 *
+	 * @uses get_option, apply_filters, esc_attr, selected
+	 * @return string
+	 */
+	public function settings_field_num_pages() {
+		$num_pages = get_option( $this->option_name_num_pages, $this->num_pages_default );
+		$max_pages = apply_filters( 'autopaging_max_num_pages', 10 );
+
+		?>
+			<select name="<?php echo esc_attr( $this->option_name_num_pages ); ?>">
+				<?php for( $i = 2; $i <= $max_pages; $i++ ) : ?>
+					<option value="<?php echo intval( $i ); ?>"<?php selected( (int) $i, (int) $num_pages ); ?>><?php echo intval( $i ); ?></option>
+				<?php endfor; ?>
+			</select>
+		<?php
+	}
+
+	/**
+	 * Sanitize number of pages input
+	 *
+	 * @param int $num_pages
+	 * @uses apply_filters
+	 * @return int
+	 */
+	public function sanitize_num_pages( $num_pages ) {
+		return max( 2, min( intval( $num_pages ), apply_filters( 'autopaging_max_num_pages', 10 ) ) );
 	}
 
 	/**
@@ -222,7 +265,7 @@ class Automatically_Paginate_Posts {
 	 * Only applied if the post type matches specified options and post doesn't already contain the Quicktag.
 	 *
 	 * @param array $posts
-	 * @uses is_admin, get_post_meta
+	 * @uses is_admin, get_post_meta, absint, apply_filters
 	 * @filter the_posts
 	 * @return array
 	 */
@@ -230,6 +273,12 @@ class Automatically_Paginate_Posts {
 		if ( ! is_admin() ) {
 			foreach( $posts as $the_post ) {
 				if ( in_array( $the_post->post_type, $this->post_types ) && ! preg_match( '#<!--nextpage-->#i', $the_post->post_content ) && ! (bool) get_post_meta( $the_post->ID, $this->meta_key_disable_autopaging, true ) ) {
+					//In-time filtering of number of pages to break over, based on post data. If value is less than 2, nothing should be done.
+					$num_pages = absint( apply_filters( 'autopaging_num_pages', absint( $this->num_pages ), $the_post ) );
+
+					if ( $num_pages < 2 )
+						continue;
+
 					//Start with post content, but alias to protect the raw content.
 					$content = $the_post->post_content;
 
@@ -245,20 +294,49 @@ class Automatically_Paginate_Posts {
 						//Explode content at double line breaks
 						$content = explode( "\r\n\r\n", $content );
 
-						//Determine where to insert Quicktag and insert
-						$insert_before = ceil( count( $content ) / 2 );
+						//Count number of paragraphs content was exploded to
+						$count = count( $content );
 
-						$content[ $insert_before ] = '<!--nextpage-->' . $content[ $insert_before ];
+						//Determine when to insert Quicktag
+						$insert_every = $count / $num_pages;
+						$insert_every_rounded = round( $insert_every );
+
+						//If number of pages is greater than number of paragraphs, put each paragraph on its own page
+						if ( $num_pages > $count )
+							$insert_every_rounded = 1;
+
+						//Set initial counter position.
+						$i = $count - 1 == $num_pages ? 2 : 1;
+
+						//Loop through content pieces and append Quicktag as is appropriate
+						foreach( $content as $key => $value ) {
+							if ( $key + 1 == $count )
+								break;
+
+							if ( ( $key + 1 ) == ( $i * $insert_every_rounded ) ) {
+								$content[ $key ] = $content[ $key ] . '<!--nextpage-->';
+								$i++;
+							}
+						}
 
 						//Reunite content
 						$content = implode( "\r\n\r\n", $content );
 
 						//And, overwrite the original content
 						$the_post->post_content = $content;
+
+						//Clean up
+						unset( $count );
+						unset( $insert_every );
+						unset( $insert_every_rounded );
+						unset( $key );
+						unset( $value );
 					}
 
 					//Lastly, clean up.
+					unset( $num_pages );
 					unset( $content );
+					unset( $count );
 				}
 			}
 		}
