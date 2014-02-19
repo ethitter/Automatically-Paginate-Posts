@@ -1,5 +1,5 @@
 === Automatically Paginate Posts ===
-Contributors: ethitter, thinkoomph
+Contributors: ethitter, thinkoomph, bendoh
 Donate link:
 Tags: paginate, nextpage, Quicktag
 Requires at least: 3.4
@@ -16,7 +16,7 @@ Automatically paginate WordPress content by inserting the &lt;!--nextpage--&gt; 
 
 Option is provided to control what post types are automatically paginated (default is just `post`). Supports `post`, `page`, and any public custom post types.
 
-Option is also provided to specify how many pages content should be broken out over.
+Option is also provided to specify how many pages content should be broken out over, or how many words should be included per page.
 
 == Installation ==
 
@@ -48,7 +48,13 @@ You can also use the filter `autopaging_post_types` to add support by appending 
 = 0.1 =
 * Initial release.
 
+= 0.2 =
+* Allow for number of words to be specified instead of number of pages.
+
 == Upgrade Notice ==
 
 = 0.1 =
 Initial release
+
+= 0.2 =
+* Allow for number of words to be specified instead of number of pages.
