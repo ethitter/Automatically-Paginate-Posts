@@ -134,8 +134,6 @@ class Automatically_Paginate_Posts {
 		add_settings_section( 'autopaging', __( 'Automatically Paginate Posts', 'autopaging' ), '__return_false', 'reading' );
 		add_settings_field( 'autopaging-post-types', __( 'Supported post types:', 'autopaging' ), array( $this, 'settings_field_post_types' ), 'reading', 'autopaging' );
 		add_settings_field( 'autopaging-paging-type', __( 'Split post by:', 'autopaging' ), array( $this, 'settings_field_paging_type' ), 'reading', 'autopaging' );
-		// add_settings_field( 'autopaging-num-pages', __( 'Number of pages to split content into:', 'autopaging' ), array( $this, 'settings_field_num_pages' ), 'reading', 'autopaging' );
-		// add_settings_field( 'autopaging-num-words', __( 'Number of words for each page:', 'autopaging' ), array( $this, 'settings_field_num_words' ), 'reading', 'autopaging' );
 	}
 
 	/**
@@ -209,8 +207,8 @@ class Automatically_Paginate_Posts {
 		}
 
 		$labels = array(
-			'pages' => __( 'Pages', 'autopaging' ),
-			'words' => __( 'Words', 'autopaging' ),
+			'pages' => __( 'Total number of pages: ', 'autopaging' ),
+			'words' => __( 'Approximate words per page: ', 'autopaging' ),
 		);
 
 		foreach ( $this->paging_types_allowed as $type ) :
@@ -218,7 +216,7 @@ class Automatically_Paginate_Posts {
 			$func = 'settings_field_num_' . $type;
 			?>
 			<p><input type="radio" name="<?php echo esc_attr( $this->option_name_paging_type ); ?>" id="autopaging-type-<?php echo $type_escaped; ?>" value="<?php echo $type_escaped; ?>"<?php checked( $type, $paging_type ); ?> /> <label for="autopaging-type-<?php echo $type_escaped; ?>">
-				<strong><?php echo $labels[ $type ]; ?></strong>: <?php $this->{$func}(); ?>
+				<strong><?php echo $labels[ $type ]; ?></strong><?php $this->{$func}(); ?>
 			</label></p>
 		<?php endforeach;
 	}
@@ -274,7 +272,7 @@ class Automatically_Paginate_Posts {
 		?>
 			<input name="<?php echo esc_attr( $this->option_name_num_words ); ?>" value="<?php echo esc_attr( $num_words ); ?>" size="4" />
 
-			<p class="description">If set, each page will contain approximately this many words, more or less depending on paragraph lengths.</p>
+			<p class="description"><?php _e( 'If chosen, each page will contain approximately this many words, depending on paragraph lengths.', 'autopaging' ); ?></p>
 		<?php
 	}
 
