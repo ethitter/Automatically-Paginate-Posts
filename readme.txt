@@ -3,8 +3,8 @@ Contributors: ethitter, thinkoomph, bendoh
 Donate link:
 Tags: paginate, nextpage, Quicktag
 Requires at least: 3.4
-Tested up to: 3.8
-Stable tag: 0.1
+Tested up to: 3.9
+Stable tag: 0.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -40,8 +40,10 @@ You can also use the filter `autopaging_post_types` to add support by appending 
 = What filters does this plugin include? =
 * `autopaging_post_types` - modify the post types supported by this plugin. Will override the values set under Settings > Reading.
 * `autopaging_num_pages_default` - modify the default number of pages over which a post is displayed. Will override the value set under Settings > Reading.
-* `autopaging_max_num_pages` - override the maximum number of pages available in the settings page dropdown.
+* `autopaging_max_num_pages` - override the maximum number of pages available in the settings page dropdown when the paging type is "pages".
+* `autopaging_max_num_words` - override the minimum number of words allowed per page page when the paging type is "words".
 * `autopaging_num_pages` - change the number of pages content is displayed on at runtime. Filter provides access to the full post object in addition to the number of pages.
+* `autopaging_num_words` - change the number of words displayed per page at runtime. Filter provides access to the full post object in addition to the number of words.
 
 == Changelog ==
 
