@@ -367,9 +367,10 @@ class Automatically_Paginate_Posts {
 						continue;
 
 					//Start with post content, but alias to protect the raw content.
-					$content = $the_post->post_content;
+					$content = wpautop( $the_post->post_content );
 
 					//Normalize post content to simplify paragraph counting and automatic paging. Accounts for content that hasn't been cleaned up by TinyMCE.
+					$content = preg_replace( ‘/(?=<p )(.*?)(>)/i’, ‘<p>’, $content );
 					$content = preg_replace( '#<p>(.+?)</p>#i', "$1\r\n\r\n", $content );
 					$content = preg_replace( '#<br(\s*/)?>#i', "\r\n", $content );
 
