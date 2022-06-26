@@ -1,26 +1,28 @@
 <?php
-/*
-Plugin Name: Automatically Paginate Posts
-Plugin URI: http://www.oomphinc.com/plugins-modules/automatically-paginate-posts/
-Description: Automatically inserts the &lt;!--nextpage--&gt; Quicktag into WordPress posts, pages, or custom post type content.
-Version: 0.2
-Author: Erick Hitter & Oomph, Inc.
-Author URI: http://www.oomphinc.com/
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-*/
+/**
+ * Plugin Name: Automatically Paginate Posts
+ * Plugin URI: http://www.oomphinc.com/plugins-modules/automatically-paginate-posts/
+ * Description: Automatically inserts the &lt;!--nextpage--&gt; Quicktag into WordPress posts, pages, or custom post type content.
+ * Version: 0.2
+ * Author: Erick Hitter & Oomph, Inc.
+ * Author URI: http://www.oomphinc.com/
+ * Text Domain: autopaging
+ * Domain Path: /languages/
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
 
 class Automatically_Paginate_Posts {
 	/**
@@ -51,7 +53,7 @@ class Automatically_Paginate_Posts {
 	 * @return null
 	 */
 	public function __construct() {
-		//Filters
+		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
 		add_action( 'init', array( $this, 'action_init' ) );
 
 		//Admin settings
@@ -63,6 +65,19 @@ class Automatically_Paginate_Posts {
 		add_action( 'add_meta_boxes', array( $this, 'action_add_meta_boxes' ) );
 		add_action( 'save_post', array( $this, 'action_save_post' ) );
 		add_filter( 'the_posts', array( $this, 'filter_the_posts' ) );
+	}
+
+	/**
+	 * Load plugin translations.
+	 *
+	 * @return void
+	 */
+	public function load_textdomain() {
+		load_plugin_textdomain(
+			'autopaging',
+			false,
+			dirname( plugin_basename( __FILE__ ) ) . '/languages/'
+		);
 	}
 
 	/**
