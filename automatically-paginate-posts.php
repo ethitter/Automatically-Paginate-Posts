@@ -603,14 +603,15 @@ class Automatically_Paginate_Posts {
 
 					// Count words per paragraph and break after the paragraph that exceeds the set threshold.
 					foreach ( $content as $index => $paragraph ) {
-						$paragraph_words = count( preg_split( '/\s+/', strip_tags( $paragraph ) ) );
-						$word_counter += $paragraph_words;
+						$word_counter += mb_strlen(
+							wp_strip_all_tags(
+								$paragraph
+							)
+						);
 
 						if ( $word_counter >= $num_words ) {
 							$content[ $index ] .= '<!--nextpage-->';
 							$word_counter = 0;
-						} else {
-							break;
 						}
 					}
 
@@ -676,7 +677,7 @@ class Automatically_Paginate_Posts {
 		$num_pages
 	) {
 		$blocks     = parse_blocks( $the_post->post_content );
-		$new_blocks = [];
+		$new_blocks = array();
 
 		switch ( $paging_type ) {
 			case 'words':
@@ -785,6 +786,8 @@ class Automatically_Paginate_Posts {
 	}
 
 	/**
+	 * Determine if current loop iteration is where a page break is expected.
+	 *
 	 * @param int $loop_key            Current position in array of blocks.
 	 * @param int $insertion_iterator  Current number of page breaks inserted.
 	 * @param int $insertion_frequency After this many blocks a should break be
