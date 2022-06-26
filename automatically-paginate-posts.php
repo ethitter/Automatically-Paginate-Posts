@@ -467,111 +467,157 @@ class Automatically_Paginate_Posts {
 	public function filter_the_posts( $posts ) {
 		if ( ! is_admin() ) {
 			foreach ( $posts as $the_post ) {
-				if ( in_array( $the_post->post_type, $this->post_types ) && ! preg_match( '#<!--nextpage-->#i', $the_post->post_content ) && ! (bool) get_post_meta( $the_post->ID, $this->meta_key_disable_autopaging, true ) ) {
-					// In-time filtering of number of pages to break over, based on post data. If value is less than 2, nothing should be done.
-					$num_pages = absint( apply_filters( 'autopaging_num_pages', absint( $this->num_pages ), $the_post ) );
-					$num_words = absint( apply_filters( 'autopaging_num_words', absint( $this->num_words ), $the_post ) );
+				if (
+					! in_array(
+						$the_post->post_type,
+						$this->post_types,
+						true
+					)
+				) {
+					continue;
+				}
 
-					if ( $num_pages < 2 && empty( $num_words ) ) {
-						continue;
-					}
+				if (
+					preg_match(
+						'#<!--nextpage-->#i',
+						$the_post->post_content
+					)
+				) {
+					continue;
+				}
 
-					// Start with post content, but alias to protect the raw content.
-					$content = $the_post->post_content;
+				if (
+					(bool) get_post_meta(
+						$the_post->ID,
+						$this->meta_key_disable_autopaging,
+						true
+					)
+				) {
+					continue;
+				}
 
-					// Normalize post content to simplify paragraph counting and automatic paging. Accounts for content that hasn't been cleaned up by TinyMCE.
-					$content = preg_replace( '#<p>(.+?)</p>#i', "$1\r\n\r\n", $content );
-					$content = preg_replace( '#<br(\s*/)?>#i', "\r\n", $content );
-
-					// Count paragraphs.
-					$count = preg_match_all( '#\r\n\r\n#', $content, $matches );
-
-					// Keep going, if we have something to count.
-					if ( is_int( $count ) && 0 < $count ) {
-						// Explode content at double (or more) line breaks.
-						$content = explode( "\r\n\r\n", $content );
-
-						switch ( get_option( $this->option_name_paging_type, $this->paging_type_default ) ) {
-							case 'words':
-								$word_counter = 0;
-
-								// Count words per paragraph and break after the paragraph that exceeds the set threshold.
-								foreach ( $content as $index => $paragraph ) {
-									$paragraph_words = count( preg_split( '/\s+/', strip_tags( $paragraph ) ) );
-									$word_counter += $paragraph_words;
-
-									if ( $word_counter >= $num_words ) {
-										$content[ $index ] .= '<!--nextpage-->';
-										$word_counter = 0;
-									} else {
-										continue;
-									}
-								}
-
-								unset( $word_counter );
-								unset( $index );
-								unset( $paragraph );
-								unset( $paragraph_words );
-
-								break;
-
-							case 'pages':
-							default:
-								// Count number of paragraphs content was exploded to.
-								$count = count( $content );
-
-								// Determine when to insert Quicktag.
-								$insert_every = $count / $num_pages;
-								$insert_every_rounded = round( $insert_every );
-
-								// If number of pages is greater than number of paragraphs, put each paragraph on its own page.
-								if ( $num_pages > $count ) {
-									$insert_every_rounded = 1;
-								}
-
-								// Set initial counter position.
-								$i = $count - 1 == $num_pages ? 2 : 1;
-
-								// Loop through content pieces and append Quicktag as is appropriate.
-								foreach ( $content as $key => $value ) {
-									if ( $key + 1 == $count ) {
-										break;
-									}
-
-									if ( ( $key + 1 ) == ( $i * $insert_every_rounded ) ) {
-										$content[ $key ] = $content[ $key ] . '<!--nextpage-->';
-										$i++;
-									}
-								}
-
-								// Clean up.
-								unset( $count );
-								unset( $insert_every );
-								unset( $insert_every_rounded );
-								unset( $key );
-								unset( $value );
-
-								break;
-						}
-
-						// Reunite content.
-						$content = implode( "\r\n\r\n", $content );
-
-						// And, overwrite the original content.
-						$the_post->post_content = $content;
-					}
-
-					// Lastly, clean up.
-					unset( $num_pages );
-					unset( $num_words );
-					unset( $content );
-					unset( $count );
+				if (
+					function_exists( 'has_blocks' )
+					&& has_blocks( $the_post )
+				) {
+					$this->filter_block_editor_post( $the_post );
+				} else {
+					$this->filter_classic_editor_post( $the_post );
 				}
 			}
 		}
 
 		return $posts;
 	}
+
+	/**
+	 * Add pagination Quicktag to post authored in the Classic Editor.
+	 *
+	 * @param WP_Post|object $the_post Post object.
+	 * @return void
+	 */
+	protected function filter_classic_editor_post( &$the_post ) {
+		// In-time filtering of number of pages to break over, based on post data. If value is less than 2, nothing should be done.
+		$num_pages = absint( apply_filters( 'autopaging_num_pages', absint( $this->num_pages ), $the_post ) );
+		$num_words = absint( apply_filters( 'autopaging_num_words', absint( $this->num_words ), $the_post ) );
+
+		if ( $num_pages < 2 && empty( $num_words ) ) {
+			return;
+		}
+
+		// Start with post content, but alias to protect the raw content.
+		$content = $the_post->post_content;
+
+		// Normalize post content to simplify paragraph counting and automatic paging. Accounts for content that hasn't been cleaned up by TinyMCE.
+		$content = preg_replace( '#<p>(.+?)</p>#i', "$1\r\n\r\n", $content );
+		$content = preg_replace( '#<br(\s*/)?>#i', "\r\n", $content );
+
+		// Count paragraphs.
+		$count = preg_match_all( '#\r\n\r\n#', $content );
+
+		// Keep going, if we have something to count.
+		if ( is_int( $count ) && 0 < $count ) {
+			// Explode content at double (or more) line breaks.
+			$content = explode( "\r\n\r\n", $content );
+
+			switch ( get_option( $this->option_name_paging_type, $this->paging_type_default ) ) {
+				case 'words':
+					$word_counter = 0;
+
+					// Count words per paragraph and break after the paragraph that exceeds the set threshold.
+					foreach ( $content as $index => $paragraph ) {
+						$paragraph_words = count( preg_split( '/\s+/', strip_tags( $paragraph ) ) );
+						$word_counter += $paragraph_words;
+
+						if ( $word_counter >= $num_words ) {
+							$content[ $index ] .= '<!--nextpage-->';
+							$word_counter = 0;
+						} else {
+							break;
+						}
+					}
+
+					unset( $word_counter );
+					unset( $index );
+					unset( $paragraph );
+					unset( $paragraph_words );
+
+					break;
+
+				case 'pages':
+				default:
+					// Count number of paragraphs content was exploded to.
+					$count = count( $content );
+
+					// Determine when to insert Quicktag.
+					$insert_every = $count / $num_pages;
+					$insert_every_rounded = round( $insert_every );
+
+					// If number of pages is greater than number of paragraphs, put each paragraph on its own page.
+					if ( $num_pages > $count ) {
+						$insert_every_rounded = 1;
+					}
+
+					// Set initial counter position.
+					$i = $count - 1 == $num_pages ? 2 : 1;
+
+					// Loop through content pieces and append Quicktag as is appropriate.
+					foreach ( $content as $key => $value ) {
+						if ( $key + 1 == $count ) {
+							break;
+						}
+
+						if ( ( $key + 1 ) == ( $i * $insert_every_rounded ) ) {
+							$content[ $key ] = $content[ $key ] . '<!--nextpage-->';
+							$i++;
+						}
+					}
+
+					// Clean up.
+					unset( $count );
+					unset( $insert_every );
+					unset( $insert_every_rounded );
+					unset( $key );
+					unset( $value );
+
+					break;
+			}
+
+			// Reunite content.
+			$content = implode( "\r\n\r\n", $content );
+
+			// And, overwrite the original content.
+			$the_post->post_content = $content;
+		}
+	}
+
+	/**
+	 * Add pagination block to post authored in the Block Editor.
+	 *
+	 * @param WP_Post $the_post Post object.
+	 * @return void
+	 */
+	protected function filter_block_editor_post( &$the_post ) {}
 }
 
 new Automatically_Paginate_Posts();
