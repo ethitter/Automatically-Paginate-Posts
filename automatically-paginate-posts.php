@@ -465,45 +465,82 @@ class Automatically_Paginate_Posts {
 	 * @return array
 	 */
 	public function filter_the_posts( $posts ) {
-		if ( ! is_admin() ) {
-			foreach ( $posts as $the_post ) {
-				if (
-					! in_array(
-						$the_post->post_type,
-						$this->post_types,
-						true
-					)
-				) {
-					continue;
-				}
+		if ( is_admin() ) {
+			return $posts;
+		}
 
-				if (
-					preg_match(
-						'#<!--nextpage-->#i',
-						$the_post->post_content
-					)
-				) {
-					continue;
-				}
+		$paging_type = get_option(
+			$this->option_name_paging_type,
+			$this->paging_type_default
+		);
 
-				if (
-					(bool) get_post_meta(
-						$the_post->ID,
-						$this->meta_key_disable_autopaging,
-						true
-					)
-				) {
-					continue;
-				}
+		foreach ( $posts as &$the_post ) {
+			if (
+				! in_array(
+					$the_post->post_type,
+					$this->post_types,
+					true
+				)
+			) {
+				continue;
+			}
 
-				if (
-					function_exists( 'has_blocks' )
-					&& has_blocks( $the_post )
-				) {
-					$this->filter_block_editor_post( $the_post );
-				} else {
-					$this->filter_classic_editor_post( $the_post );
-				}
+			if (
+				preg_match(
+					'#<!--nextpage-->#i',
+					$the_post->post_content
+				)
+			) {
+				continue;
+			}
+
+			if (
+				(bool) get_post_meta(
+					$the_post->ID,
+					$this->meta_key_disable_autopaging,
+					true
+				)
+			) {
+				continue;
+			}
+
+			// In-time filtering of number of pages to break over, based on post data. If value is less than 2, nothing should be done.
+			$num_pages = absint(
+				apply_filters(
+					'autopaging_num_pages',
+					absint( $this->num_pages ),
+					$the_post
+				)
+			);
+			$num_words = absint(
+				apply_filters(
+					'autopaging_num_words',
+					absint( $this->num_words ),
+					$the_post
+				)
+			);
+
+			if ( $num_pages < 2 && empty( $num_words ) ) {
+				continue;
+			}
+
+			if (
+				function_exists( 'has_blocks' )
+				&& has_blocks( $the_post )
+			) {
+				$this->filter_block_editor_post(
+					$the_post,
+					$paging_type,
+					$num_words,
+					$num_pages
+				);
+			} else {
+				$this->filter_classic_editor_post(
+					$the_post,
+					$paging_type,
+					$num_words,
+					$num_pages
+				);
 			}
 		}
 
@@ -513,18 +550,18 @@ class Automatically_Paginate_Posts {
 	/**
 	 * Add pagination Quicktag to post authored in the Classic Editor.
 	 *
-	 * @param WP_Post|object $the_post Post object.
+	 * @param WP_Post|object $the_post    Post object.
+	 * @param string         $paging_type How to split post.
+	 * @param int            $num_words   Number of words to split on.
+	 * @param int            $num_pages   Number of pages to split to.
 	 * @return void
 	 */
-	protected function filter_classic_editor_post( &$the_post ) {
-		// In-time filtering of number of pages to break over, based on post data. If value is less than 2, nothing should be done.
-		$num_pages = absint( apply_filters( 'autopaging_num_pages', absint( $this->num_pages ), $the_post ) );
-		$num_words = absint( apply_filters( 'autopaging_num_words', absint( $this->num_words ), $the_post ) );
-
-		if ( $num_pages < 2 && empty( $num_words ) ) {
-			return;
-		}
-
+	protected function filter_classic_editor_post(
+		&$the_post,
+		$paging_type,
+		$num_words,
+		$num_pages
+	) {
 		// Start with post content, but alias to protect the raw content.
 		$content = $the_post->post_content;
 
@@ -540,7 +577,7 @@ class Automatically_Paginate_Posts {
 			// Explode content at double (or more) line breaks.
 			$content = explode( "\r\n\r\n", $content );
 
-			switch ( get_option( $this->option_name_paging_type, $this->paging_type_default ) ) {
+			switch ( $paging_type ) {
 				case 'words':
 					$word_counter = 0;
 
@@ -614,10 +651,22 @@ class Automatically_Paginate_Posts {
 	/**
 	 * Add pagination block to post authored in the Block Editor.
 	 *
-	 * @param WP_Post $the_post Post object.
+	 * @param WP_Post $the_post    Post object.
+	 * @param string  $paging_type How to split post.
+	 * @param int     $num_words   Number of words to split on.
+	 * @param int     $num_pages   Number of pages to split to.
 	 * @return void
 	 */
-	protected function filter_block_editor_post( &$the_post ) {}
+	protected function filter_block_editor_post(
+		&$the_post,
+		$paging_type,
+		$num_words,
+		$num_pages
+	) {
+		$blocks = parse_blocks( $the_post->post_content );
+
+//		if ( 'pages' === $this->pagin )
+	}
 }
 
 new Automatically_Paginate_Posts();
