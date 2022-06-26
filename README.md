@@ -3,8 +3,8 @@
 Donate link:
 **Tags:** paginate, nextpage, Quicktag  
 **Requires at least:** 3.4  
-**Tested up to:** 5.4  
-**Stable tag:** 0.2  
+**Tested up to:** 6.0  
+**Stable tag:** 0.3  
 **License:** GPLv2 or later  
 **License URI:** http://www.gnu.org/licenses/gpl-2.0.html  
 
@@ -30,7 +30,7 @@ Option is also provided to specify how many pages content should be broken out o
 The plugin's options are added to the built-in **Reading** settings page in WordPress.
 
 ### Can I disable the plugin's functionality for specific posts, pages, or custom post type objects? ###
-Yes, the plugin adds a metabox to individual items in supported post types that allows the autopaging to be disabled on a per-post basis.
+Yes, the plugin adds a metabox (Classic Editor) and a sidebar component (Block Editor) to individual items in supported post types that allows the autopaging to be disabled on a per-post basis.
 
 ### How can I add support for my custom post type? ###
 Navigate to Settings > Reading in WP Admin to enable this plugin for your custom post type.
@@ -47,16 +47,24 @@ You can also use the filter `autopaging_post_types` to add support by appending 
 
 ## Changelog ##
 
+### 0.3 ###
+* Add support for content authored in block editor (Gutenberg).
+* Add native block-editor control to replace legacy metabox.
+* Fix bug that created empty pages.
+
+### 0.2 ###
+* Allow for number of words to be specified instead of number of pages.
+
 ### 0.1 ###
 * Initial release.
 
-### 0.2 ###
-* Allow for number of words to be specified instead of number of pages.
-
 ## Upgrade Notice ##
+
+### 0.3 ###
+Add support for block editor and fix bug that created empty pages.
+
+### 0.2 ###
+Allow for number of words to be specified instead of number of pages.
 
 ### 0.1 ###
 Initial release
-
-### 0.2 ###
-* Allow for number of words to be specified instead of number of pages.

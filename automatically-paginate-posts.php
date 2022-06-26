@@ -5,7 +5,7 @@
  * Plugin Name: Automatically Paginate Posts
  * Plugin URI: http://www.oomphinc.com/plugins-modules/automatically-paginate-posts/
  * Description: Automatically inserts the &lt;!--nextpage--&gt; Quicktag into WordPress posts, pages, or custom post type content.
- * Version: 0.2
+ * Version: 0.3
  * Author: Erick Hitter & Oomph, Inc.
  * Author URI: http://www.oomphinc.com/
  * Text Domain: autopaging
