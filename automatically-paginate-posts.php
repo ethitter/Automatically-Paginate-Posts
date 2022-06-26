@@ -246,9 +246,9 @@ class Automatically_Paginate_Posts {
 
 		// Output checkboxes.
 		foreach ( $post_types as $post_type => $atts ) :
-		?>
+			?>
 			<input type="checkbox" name="<?php echo esc_attr( $this->option_name_post_types ); ?>[]" id="post-type-<?php echo esc_attr( $post_type ); ?>" value="<?php echo esc_attr( $post_type ); ?>"<?php checked( in_array( $post_type, $current_types ) ); ?> /> <label for="post-type-<?php echo esc_attr( $post_type ); ?>"><?php echo esc_html( $atts->label ); ?></label><br />
-		<?php
+			<?php
 		endforeach;
 	}
 
@@ -299,8 +299,8 @@ class Automatically_Paginate_Posts {
 		}
 
 		$labels = array(
-			'pages' => esc_html__( 'Total number of pages: ', 'autopaging' ),
-			'words' => esc_html__( 'Approximate words per page: ', 'autopaging' ),
+			'pages' => __( 'Total number of pages: ', 'autopaging' ),
+			'words' => __( 'Approximate words per page: ', 'autopaging' ),
 		);
 
 		foreach ( $this->paging_types_allowed as $type ) :
@@ -308,11 +308,12 @@ class Automatically_Paginate_Posts {
 			?>
 			<p><input type="radio" name="<?php echo esc_attr( $this->option_name_paging_type ); ?>" id="autopaging-type-<?php echo esc_attr( $type ); ?>" value="<?php echo esc_attr( $type ); ?>"<?php checked( $type, $paging_type ); ?> /> <label for="autopaging-type-<?php echo esc_attr( $type ); ?>">
 				<strong>
-					<?php echo $labels[ $type ]; ?>
+					<?php echo esc_html( $labels[ $type ] ); ?>
 				</strong>
 				<?php $this->{$func}(); ?>
 			</label></p>
-		<?php endforeach;
+		<?php
+		endforeach;
 	}
 
 	/**
@@ -403,17 +404,28 @@ class Automatically_Paginate_Posts {
 	/**
 	 * Render autopaging metabox.
 	 *
-	 * @param object $post
+	 * @param object $post Post object.
 	 * @uses esc_attr, checked, _e, __, wp_nonce_field
 	 * @return void
 	 */
 	public function meta_box_autopaging( $post ) {
-	?>
+		?>
 		<p>
 			<input type="checkbox" name="<?php echo esc_attr( $this->meta_key_disable_autopaging ); ?>" id="<?php echo esc_attr( $this->meta_key_disable_autopaging ); ?>_checkbox" value="1"<?php checked( (bool) get_post_meta( $post->ID, $this->meta_key_disable_autopaging, true ) ); ?> /> <label for="<?php echo esc_attr( $this->meta_key_disable_autopaging ); ?>_checkbox">Disable autopaging for this post?</label>
 		</p>
 		<p class="description"><?php esc_html__( 'Check the box above to prevent this post from automatically being split over multiple pages.', 'autopaging' ); ?></p>
-		<p class="description"><?php printf( esc_html__( 'Note that if the %1$s Quicktag is used to manually page this post, automatic paging won\'t be applied, regardless of the setting above.', 'autopaging' ), '<code>&lt;!--nextpage--&gt;</code>' ); ?></p>
+		<p class="description">
+			<?php
+				printf(
+					/* translators: 1. Quicktag code example. */
+					esc_html__(
+						'Note that if the %1$s Quicktag is used to manually page this post, automatic paging won\'t be applied, regardless of the setting above.',
+						'autopaging'
+					),
+					'<code>&lt;!--nextpage--&gt;</code>'
+				);
+			?>
+		</p>
 
 		<?php
 		wp_nonce_field( $this->meta_key_disable_autopaging, $this->meta_key_disable_autopaging . '_wpnonce' );
@@ -422,22 +434,24 @@ class Automatically_Paginate_Posts {
 	/**
 	 * Save autopaging metabox.
 	 *
-	 * @param int $post_id
+	 * @param int $post_id Post ID.
 	 * @uses DOING_AUTOSAVE, wp_verify_nonce, update_post_meta, delete_post_meta
 	 * @action save_post
 	 * @return null
 	 */
 	public function action_save_post( $post_id ) {
-		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 			return;
+		}
 
 		if ( isset( $_POST[ $this->meta_key_disable_autopaging . '_wpnonce' ] ) && wp_verify_nonce( $_POST[ $this->meta_key_disable_autopaging . '_wpnonce' ], $this->meta_key_disable_autopaging ) ) {
 			$disable = isset( $_POST[ $this->meta_key_disable_autopaging ] ) ? true : false;
 
-			if ( $disable )
+			if ( $disable ) {
 				update_post_meta( $post_id, $this->meta_key_disable_autopaging, true );
-			else
+			} else {
 				delete_post_meta( $post_id, $this->meta_key_disable_autopaging );
+			}
 		}
 	}
 
@@ -452,14 +466,15 @@ class Automatically_Paginate_Posts {
 	 */
 	public function filter_the_posts( $posts ) {
 		if ( ! is_admin() ) {
-			foreach( $posts as $the_post ) {
+			foreach ( $posts as $the_post ) {
 				if ( in_array( $the_post->post_type, $this->post_types ) && ! preg_match( '#<!--nextpage-->#i', $the_post->post_content ) && ! (bool) get_post_meta( $the_post->ID, $this->meta_key_disable_autopaging, true ) ) {
 					// In-time filtering of number of pages to break over, based on post data. If value is less than 2, nothing should be done.
 					$num_pages = absint( apply_filters( 'autopaging_num_pages', absint( $this->num_pages ), $the_post ) );
 					$num_words = absint( apply_filters( 'autopaging_num_words', absint( $this->num_words ), $the_post ) );
 
-					if ( $num_pages < 2 && empty( $num_words ) )
+					if ( $num_pages < 2 && empty( $num_words ) ) {
 						continue;
+					}
 
 					// Start with post content, but alias to protect the raw content.
 					$content = $the_post->post_content;
@@ -468,7 +483,7 @@ class Automatically_Paginate_Posts {
 					$content = preg_replace( '#<p>(.+?)</p>#i', "$1\r\n\r\n", $content );
 					$content = preg_replace( '#<br(\s*/)?>#i', "\r\n", $content );
 
-					// C.ount paragraphs
+					// Count paragraphs.
 					$count = preg_match_all( '#\r\n\r\n#', $content, $matches );
 
 					// Keep going, if we have something to count.
@@ -477,7 +492,7 @@ class Automatically_Paginate_Posts {
 						$content = explode( "\r\n\r\n", $content );
 
 						switch ( get_option( $this->option_name_paging_type, $this->paging_type_default ) ) {
-							case 'words' :
+							case 'words':
 								$word_counter = 0;
 
 								// Count words per paragraph and break after the paragraph that exceeds the set threshold.
@@ -500,8 +515,8 @@ class Automatically_Paginate_Posts {
 
 								break;
 
-							case 'pages' :
-							default :
+							case 'pages':
+							default:
 								// Count number of paragraphs content was exploded to.
 								$count = count( $content );
 
@@ -558,5 +573,6 @@ class Automatically_Paginate_Posts {
 		return $posts;
 	}
 }
-new Automatically_Paginate_Posts;
+
+new Automatically_Paginate_Posts();
 ?>
