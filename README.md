@@ -1,5 +1,5 @@
 # Automatically Paginate Posts #
-**Contributors:** ethitter, thinkoomph, bendoh  
+**Contributors:** [ethitter](https://profiles.wordpress.org/ethitter/), [thinkoomph](https://profiles.wordpress.org/thinkoomph/), [bendoh](https://profiles.wordpress.org/bendoh/)  
 Donate link:
 **Tags:** paginate, nextpage, Quicktag  
 **Requires at least:** 3.4  
