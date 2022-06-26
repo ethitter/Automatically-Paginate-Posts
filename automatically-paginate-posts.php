@@ -63,14 +63,21 @@ class Automatically_Paginate_Posts {
 	 *
 	 * @var int
 	 */
-	private $num_pages_default   = 2;
+	private $num_pages_default = 2;
+
+	/**
+	 * Desired number of words per pages.
+	 *
+	 * @var int
+	 */
+	private $num_words;
 
 	/**
 	 * Default number of words to split on.
 	 *
 	 * @var string|int
 	 */
-	private $num_words_default   = '';
+	private $num_words_default = '';
 
 	/**
 	 * Allowed split types.
@@ -86,7 +93,7 @@ class Automatically_Paginate_Posts {
 	 *
 	 * @var string
 	 */
-	private $option_name_post_types  = 'autopaging_post_types';
+	private $option_name_post_types = 'autopaging_post_types';
 
 	/**
 	 * Split-type option name.
@@ -100,14 +107,14 @@ class Automatically_Paginate_Posts {
 	 *
 	 * @var string
 	 */
-	private $option_name_num_pages   = 'autopaging_num_pages';
+	private $option_name_num_pages = 'autopaging_num_pages';
 
 	/**
 	 * Option holding number of words to split on.
 	 *
 	 * @var string
 	 */
-	private $option_name_num_words   = 'autopaging_num_words';
+	private $option_name_num_words = 'autopaging_num_words';
 
 	/**
 	 * Meta key used to indicate that a post shouldn't be automatically split.
@@ -504,7 +511,6 @@ class Automatically_Paginate_Posts {
 				continue;
 			}
 
-			// In-time filtering of number of pages to break over, based on post data. If value is less than 2, nothing should be done.
 			$num_pages = absint(
 				apply_filters(
 					'autopaging_num_pages',
@@ -594,11 +600,6 @@ class Automatically_Paginate_Posts {
 						}
 					}
 
-					unset( $word_counter );
-					unset( $index );
-					unset( $paragraph );
-					unset( $paragraph_words );
-
 					break;
 
 				case 'pages':
@@ -606,36 +607,33 @@ class Automatically_Paginate_Posts {
 					// Count number of paragraphs content was exploded to.
 					$count = count( $content );
 
-					// Determine when to insert Quicktag.
-					$insert_every = $count / $num_pages;
-					$insert_every_rounded = round( $insert_every );
+					$frequency = $this->get_insertion_frequency_by_pages(
+						$count,
+						$num_pages
+					);
 
-					// If number of pages is greater than number of paragraphs, put each paragraph on its own page.
-					if ( $num_pages > $count ) {
-						$insert_every_rounded = 1;
-					}
-
-					// Set initial counter position.
-					$i = $count - 1 == $num_pages ? 2 : 1;
+					$i = $this->get_initial_counter_for_pages(
+						$count,
+						$num_pages
+					);
 
 					// Loop through content pieces and append Quicktag as is appropriate.
 					foreach ( $content as $key => $value ) {
-						if ( $key + 1 == $count ) {
+						if ( $this->is_at_end_for_pages( $key, $count ) ) {
 							break;
 						}
 
-						if ( ( $key + 1 ) == ( $i * $insert_every_rounded ) ) {
-							$content[ $key ] = $content[ $key ] . '<!--nextpage-->';
+						if (
+							$this->is_insertion_point_for_pages(
+								$key,
+								$i,
+								$frequency
+							)
+						) {
+							$content[ $key ] .= '<!--nextpage-->';
 							$i++;
 						}
 					}
-
-					// Clean up.
-					unset( $count );
-					unset( $insert_every );
-					unset( $insert_every_rounded );
-					unset( $key );
-					unset( $value );
 
 					break;
 			}
@@ -663,9 +661,124 @@ class Automatically_Paginate_Posts {
 		$num_words,
 		$num_pages
 	) {
-		$blocks = parse_blocks( $the_post->post_content );
+		$blocks     = parse_blocks( $the_post->post_content );
+		$new_blocks = [];
 
-//		if ( 'pages' === $this->pagin )
+		switch ( $paging_type ) {
+			case 'words':
+				break;
+
+			case 'pages':
+			default:
+				$count = count( $blocks );
+
+				$frequency = $this->get_insertion_frequency_by_pages(
+					$count,
+					$num_pages
+				);
+
+				$i = $this->get_initial_counter_for_pages( $count, $num_pages );
+
+				foreach ( $blocks as $key => $block ) {
+					$new_blocks[] = $block;
+
+					if ( $this->is_at_end_for_pages( $key, $count ) ) {
+						continue;
+					}
+
+					if (
+						$this->is_insertion_point_for_pages(
+							$key,
+							$i,
+							$frequency
+						)
+					) {
+						$new_blocks[] = $this->get_parsed_nextpage_block();
+						$i++;
+					}
+				}
+				break;
+		}
+
+		$the_post->post_content = serialize_blocks( $new_blocks );
+	}
+
+	/**
+	 * Determine after how many paragraphs a page break should be inserted.
+	 *
+	 * @param int $count     Total number of paragraphs.
+	 * @param int $num_pages Desired number of pages.
+	 * @return int
+	 */
+	protected function get_insertion_frequency_by_pages( $count, $num_pages ) {
+		$frequency = (int) round( $count / $num_pages );
+
+		// If number of pages is greater than number of paragraphs, put each paragraph on its own page.
+		if ( $num_pages > $count ) {
+			$frequency = 1;
+		}
+
+		return $frequency;
+	}
+
+	/**
+	 * Get counter starting value for use when splitting by pages.
+	 *
+	 * @param int $count     Total number of paragraphs.
+	 * @param int $num_pages Desired number of pages.
+	 * @return int
+	 */
+	protected function get_initial_counter_for_pages( $count, $num_pages ) {
+		return $count - 1 === $num_pages ? 2 : 1;
+	}
+
+	/**
+	 * Determine if more page breaks should be inserted.
+	 *
+	 * @param int $key   Current position in array of blocks.
+	 * @param int $count Total number of paragraphs.
+	 * @return bool
+	 */
+	protected function is_at_end_for_pages( $key, $count ) {
+		return ( $key + 1 ) === $count;
+	}
+
+	/**
+	 * @param int $loop_key            Current position in array of blocks.
+	 * @param int $insertion_iterator  Current number of page breaks inserted.
+	 * @param int $insertion_frequency After this many blocks a should break be
+	 *                                 inserted.
+	 * @return bool
+	 */
+	protected function is_insertion_point_for_pages(
+		$loop_key,
+		$insertion_iterator,
+		$insertion_frequency
+	) {
+		return ( $loop_key + 1 ) ===
+			( $insertion_iterator * $insertion_frequency );
+	}
+
+	/**
+	 * Create parsed representation of block for insertion in list of post's
+	 * blocks.
+	 *
+	 * @return array
+	 */
+	protected function get_parsed_nextpage_block() {
+		static $block;
+
+		if ( ! $block ) {
+			$_block = parse_blocks(
+				'<!-- wp:nextpage -->
+<!--nextpage-->
+<!-- /wp:nextpage -->'
+			);
+
+			$block = array_shift( $_block );
+		}
+
+		return $block;
 	}
 }
 
