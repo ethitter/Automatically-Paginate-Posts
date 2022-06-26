@@ -312,7 +312,7 @@ class Automatically_Paginate_Posts {
 				</strong>
 				<?php $this->{$func}(); ?>
 			</label></p>
-		<?php
+			<?php
 		endforeach;
 	}
 
