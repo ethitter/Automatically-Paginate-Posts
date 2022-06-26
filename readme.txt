@@ -44,6 +44,7 @@ You can also use the filter `autopaging_post_types` to add support by appending 
 * `autopaging_max_num_words` - override the minimum number of words allowed per page page when the paging type is "words".
 * `autopaging_num_pages` - change the number of pages content is displayed on at runtime. Filter provides access to the full post object in addition to the number of pages.
 * `autopaging_num_words` - change the number of words displayed per page at runtime. Filter provides access to the full post object in addition to the number of words.
+* `autopaging_supported_block_types_for_word_counts` - specify which block types are considered when splitting a block-editor post by word count.
 
 == Changelog ==
 

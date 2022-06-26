@@ -5,7 +5,7 @@ msgstr ""
 "Project-Id-Version: Automatically Paginate Posts 0.3\n"
 "Report-Msgid-Bugs-To: "
 "https://wordpress.org/support/plugin/automatically-paginate-posts\n"
-"POT-Creation-Date: 2022-06-26 21:05:45+00:00\n"
+"POT-Creation-Date: 2022-06-26 22:43:32+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -29,39 +29,39 @@ msgstr ""
 msgid "Automatically Paginate Posts"
 msgstr ""
 
-#: automatically-paginate-posts.php:223
+#: automatically-paginate-posts.php:244
 msgid "Supported post types:"
 msgstr ""
 
-#: automatically-paginate-posts.php:224
+#: automatically-paginate-posts.php:245
 msgid "Split post by:"
 msgstr ""
 
-#: automatically-paginate-posts.php:302
+#: automatically-paginate-posts.php:323
 msgid "Total number of pages: "
 msgstr ""
 
-#: automatically-paginate-posts.php:303
+#: automatically-paginate-posts.php:324
 msgid "Approximate words per page: "
 msgstr ""
 
-#: automatically-paginate-posts.php:370
+#: automatically-paginate-posts.php:391
 msgid ""
 "If chosen, each page will contain approximately this many words, depending "
 "on paragraph lengths."
 msgstr ""
 
-#: automatically-paginate-posts.php:400
+#: automatically-paginate-posts.php:421
 msgid "Post Autopaging"
 msgstr ""
 
-#: automatically-paginate-posts.php:416
+#: automatically-paginate-posts.php:437
 msgid ""
 "Check the box above to prevent this post from automatically being split "
 "over multiple pages."
 msgstr ""
 
-#: automatically-paginate-posts.php:421
+#: automatically-paginate-posts.php:442
 #. translators: 1. Quicktag code example.
 msgid ""
 "Note that if the %1$s Quicktag is used to manually page this post, "

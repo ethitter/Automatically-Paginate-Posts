@@ -80,13 +80,21 @@ class Automatically_Paginate_Posts {
 	private $num_words_default = '';
 
 	/**
+	 * When splitting by word counts, these blocks are considered. Tags are
+	 * stripped and remaining content is counted.
+	 *
+	 * @var array
+	 */
+	private $supported_block_types_for_word_counts = array(
+		'core/paragraph',
+	);
+
+	/**
 	 * Allowed split types.
 	 *
 	 * @var array
 	 */
 	private $paging_types_allowed = array( 'pages', 'words' );
-
-	// Ensure option names match values in `uninstall()` method.
 
 	/**
 	 * Supported-post-types option name.
@@ -180,6 +188,12 @@ class Automatically_Paginate_Posts {
 		if ( 0 == $this->num_words ) {
 			$this->num_words = $this->num_words_default;
 		}
+
+		// Supported blocks for splitting by words.
+		$this->supported_block_types_for_word_counts = apply_filters(
+			'autopaging_supported_block_types_for_word_counts',
+			$this->supported_block_types_for_word_counts
+		);
 	}
 
 	/**
@@ -666,6 +680,33 @@ class Automatically_Paginate_Posts {
 
 		switch ( $paging_type ) {
 			case 'words':
+				$word_count = 0;
+
+				foreach ( $blocks as $block ) {
+					$new_blocks[] = $block;
+
+					if (
+						in_array(
+							$block['blockName'],
+							$this->supported_block_types_for_word_counts,
+							true
+						)
+					) {
+						$word_count += mb_strlen(
+							trim(
+								wp_strip_all_tags(
+									$block['innerHTML']
+								)
+							)
+						);
+
+						if ( $word_count >= $num_words ) {
+							$new_blocks[] = $this->get_parsed_nextpage_block();
+
+							$word_count = 0;
+						}
+					}
+				}
 				break;
 
 			case 'pages':
