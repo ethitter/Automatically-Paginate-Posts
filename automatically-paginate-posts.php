@@ -120,7 +120,7 @@ class Automatically_Paginate_Posts {
 	 * Register hooks.
 	 *
 	 * @uses add_action, register_uninstall_hook, add_filter
-	 * @return null
+	 * @return void
 	 */
 	public function __construct() {
 		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
@@ -156,7 +156,7 @@ class Automatically_Paginate_Posts {
 	 *
 	 * @uses apply_filters, get_option
 	 * @action init
-	 * @return null
+	 * @return void
 	 */
 	public function action_init() {
 		// Post types.
@@ -164,13 +164,15 @@ class Automatically_Paginate_Posts {
 
 		// Number of pages to break over.
 		$this->num_pages = absint( apply_filters( 'autopaging_num_pages_default', get_option( $this->option_name_num_pages, $this->num_pages_default ) ) );
-		if ( 0 == $this->num_pages )
+		if ( 0 == $this->num_pages ) {
 			$this->num_pages = $this->num_pages_default;
+		}
 
 		// Number of words to break over.
 		$this->num_words = absint( apply_filters( 'autopaging_num_words_default', get_option( $this->option_name_num_words, $this->num_words_default ) ) );
-		if ( 0 == $this->num_words )
+		if ( 0 == $this->num_words ) {
 			$this->num_words = $this->num_words_default;
+		}
 	}
 
 	/**
@@ -179,7 +181,7 @@ class Automatically_Paginate_Posts {
 	 *
 	 * @uses delete_option
 	 * @action uninstall
-	 * @return null
+	 * @return void
 	 */
 	public function uninstall() {
 		delete_option( 'autopaging_post_types' );
@@ -191,13 +193,14 @@ class Automatically_Paginate_Posts {
 	/**
 	 * Add settings link to plugin's row actions
 	 *
-	 * @param array $actions
-	 * @param string $file
+	 * @param array  $actions Plugin's actions.
+	 * @param string $file    Plugin filename.
 	 * @filter plugin_action_links,
 	 */
 	public function filter_plugin_action_links( $actions, $file ) {
-		if ( false !== strpos( $file, basename( __FILE__ ) ) )
-			$actions[ 'settings' ] = '<a href="' . admin_url( 'options-reading.php' ) . '">Settings</a>';
+		if ( false !== strpos( $file, basename( __FILE__ ) ) ) {
+			$actions['settings'] = '<a href="' . admin_url( 'options-reading.php' ) . '">Settings</a>';
+		}
 
 		return $actions;
 	}
@@ -208,7 +211,7 @@ class Automatically_Paginate_Posts {
 	 *
 	 * @uses register_setting, add_settings_section, __, __return_false, add_settings_field
 	 * @action admin_init
-	 * @return null
+	 * @return void
 	 */
 	public function action_admin_init() {
 		register_setting( 'reading', $this->option_name_post_types, array( $this, 'sanitize_supported_post_types' ) );
@@ -229,11 +232,14 @@ class Automatically_Paginate_Posts {
 	 */
 	public function settings_field_post_types() {
 		// Get all public post types.
-		$post_types = get_post_types( array(
-			'public' => true
-		), 'objects' );
+		$post_types = get_post_types(
+			array(
+				'public' => true,
+			),
+			'objects'
+		);
 
-		unset( $post_types[ 'attachment' ] );
+		unset( $post_types['attachment'] );
 
 		// Current settings.
 		$current_types = get_option( $this->option_name_post_types, $this->post_types_default );
@@ -249,7 +255,7 @@ class Automatically_Paginate_Posts {
 	/**
 	 * Sanitize post type inputs.
 	 *
-	 * @param array $post_types_checked
+	 * @param array $post_types_checked Selected post types to sanitize.
 	 * @uses get_post_types
 	 * @return array
 	 */
@@ -259,16 +265,19 @@ class Automatically_Paginate_Posts {
 		// Ensure that only existing, public post types are submitted as valid options.
 		if ( is_array( $post_types_checked ) && ! empty( $post_types_checked ) ) {
 			// Get all public post types.
-			$post_types = get_post_types( array(
-				'public' => true
-			) );
+			$post_types = get_post_types(
+				array(
+					'public' => true,
+				)
+			);
 
-			unset( $post_types[ 'attachment' ] );
+			unset( $post_types['attachment'] );
 
 			// Check input post types against those registered with WordPress and made available to this plugin.
 			foreach ( $post_types_checked as $post_type ) {
-				if ( array_key_exists( $post_type, $post_types ) )
+				if ( array_key_exists( $post_type, $post_types ) ) {
 					$post_types_sanitized[] = $post_type;
+				}
 			}
 		}
 
@@ -290,16 +299,18 @@ class Automatically_Paginate_Posts {
 		}
 
 		$labels = array(
-			'pages' => __( 'Total number of pages: ', 'autopaging' ),
-			'words' => __( 'Approximate words per page: ', 'autopaging' ),
+			'pages' => esc_html__( 'Total number of pages: ', 'autopaging' ),
+			'words' => esc_html__( 'Approximate words per page: ', 'autopaging' ),
 		);
 
 		foreach ( $this->paging_types_allowed as $type ) :
-			$type_escaped = esc_attr( $type );
 			$func = 'settings_field_num_' . $type;
 			?>
-			<p><input type="radio" name="<?php echo esc_attr( $this->option_name_paging_type ); ?>" id="autopaging-type-<?php echo $type_escaped; ?>" value="<?php echo $type_escaped; ?>"<?php checked( $type, $paging_type ); ?> /> <label for="autopaging-type-<?php echo $type_escaped; ?>">
-				<strong><?php echo $labels[ $type ]; ?></strong><?php $this->{$func}(); ?>
+			<p><input type="radio" name="<?php echo esc_attr( $this->option_name_paging_type ); ?>" id="autopaging-type-<?php echo esc_attr( $type ); ?>" value="<?php echo esc_attr( $type ); ?>"<?php checked( $type, $paging_type ); ?> /> <label for="autopaging-type-<?php echo esc_attr( $type ); ?>">
+				<strong>
+					<?php echo $labels[ $type ]; ?>
+				</strong>
+				<?php $this->{$func}(); ?>
 			</label></p>
 		<?php endforeach;
 	}
@@ -307,7 +318,7 @@ class Automatically_Paginate_Posts {
 	/**
 	 * Validate chosen paging type against allowed values.
 	 *
-	 * @param string
+	 * @param string $type Selected paging type.
 	 * @return string
 	 */
 	public function sanitize_paging_type( $type ) {
@@ -326,7 +337,7 @@ class Automatically_Paginate_Posts {
 
 		?>
 			<select name="<?php echo esc_attr( $this->option_name_num_pages ); ?>">
-				<?php for( $i = 2; $i <= $max_pages; $i++ ) : ?>
+				<?php for ( $i = 2; $i <= $max_pages; $i++ ) : ?>
 					<option value="<?php echo intval( $i ); ?>"<?php selected( (int) $i, (int) $num_pages ); ?>><?php echo intval( $i ); ?></option>
 				<?php endfor; ?>
 			</select>
@@ -348,7 +359,7 @@ class Automatically_Paginate_Posts {
 	 * Render input field for specifying approximate number of words each page should contain.
 	 *
 	 * @uses get_option, apply_filters, esc_attr, selected
-	 * @return string
+	 * @return void
 	 */
 	public function settings_field_num_words() {
 		$num_words = apply_filters( 'autopaging_num_words', get_option( $this->option_name_num_words ) )
@@ -381,7 +392,7 @@ class Automatically_Paginate_Posts {
 	 *
 	 * @uses add_metabox, __
 	 * @action add_meta_box
-	 * @return null
+	 * @return void
 	 */
 	public function action_add_meta_boxes() {
 		foreach ( $this->post_types as $post_type ) {
@@ -394,16 +405,17 @@ class Automatically_Paginate_Posts {
 	 *
 	 * @param object $post
 	 * @uses esc_attr, checked, _e, __, wp_nonce_field
-	 * @return string
+	 * @return void
 	 */
 	public function meta_box_autopaging( $post ) {
 	?>
 		<p>
 			<input type="checkbox" name="<?php echo esc_attr( $this->meta_key_disable_autopaging ); ?>" id="<?php echo esc_attr( $this->meta_key_disable_autopaging ); ?>_checkbox" value="1"<?php checked( (bool) get_post_meta( $post->ID, $this->meta_key_disable_autopaging, true ) ); ?> /> <label for="<?php echo esc_attr( $this->meta_key_disable_autopaging ); ?>_checkbox">Disable autopaging for this post?</label>
 		</p>
-		<p class="description"><?php _e( 'Check the box above to prevent this post from automatically being split over multiple pages.', 'autopaging' ); ?></p>
-		<p class="description"><?php printf( __( 'Note that if the %1$s Quicktag is used to manually page this post, automatic paging won\'t be applied, regardless of the setting above.', 'autopaging' ), '<code>&lt;!--nextpage--&gt;</code>' ); ?></p>
-	<?php
+		<p class="description"><?php esc_html__( 'Check the box above to prevent this post from automatically being split over multiple pages.', 'autopaging' ); ?></p>
+		<p class="description"><?php printf( esc_html__( 'Note that if the %1$s Quicktag is used to manually page this post, automatic paging won\'t be applied, regardless of the setting above.', 'autopaging' ), '<code>&lt;!--nextpage--&gt;</code>' ); ?></p>
+
+		<?php
 		wp_nonce_field( $this->meta_key_disable_autopaging, $this->meta_key_disable_autopaging . '_wpnonce' );
 	}
 
