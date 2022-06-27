@@ -103,6 +103,18 @@ class Block_Editor {
 	 * @return void
 	 */
 	public function enqueue() {
+		global $typenow;
+
+		if (
+			! in_array(
+				$typenow,
+				$this->autopaging_instance->post_types,
+				true
+			)
+		) {
+			return;
+		}
+
 		$asset_handle = 'automatically-paginate-posts-block-editor';
 
 		$plugin_base_dir = dirname( dirname( __FILE__ ) );
@@ -116,6 +128,14 @@ class Block_Editor {
 			$asset_data['dependencies'],
 			$asset_data['version'],
 			true
+		);
+
+		wp_localize_script(
+			$asset_handle,
+			'autopagingSettings',
+			[
+				'metaKey' => $this->autopaging_instance->meta_key,
+			]
 		);
 
 		wp_set_script_translations(

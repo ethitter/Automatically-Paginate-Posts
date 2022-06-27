@@ -1,28 +1,30 @@
 {
-  "name": "automatically-paginate-posts",
-  "version": "0.1.0",
-  "main": "Gruntfile.js",
-  "author": "Erick Hitter & Oomph, Inc.",
-  "devDependencies": {
-    "@wordpress/scripts": "^23.3.0",
-    "grunt": "^1.5.3",
-    "grunt-wp-i18n": "^1.0.3",
-    "grunt-wp-readme-to-markdown": "^2.1.0"
-  },
-  "scripts": {
-    "build": "wp-scripts build",
-    "check-engines": "wp-scripts check-engines",
-    "check-licenses": "wp-scripts check-licenses",
-    "format": "wp-scripts format",
-    "grunt": "grunt",
-    "lint:css": "wp-scripts lint-style",
-    "lint:js": "wp-scripts lint-js",
-    "lint:md:docs": "wp-scripts lint-md-docs",
-    "lint:pkg-json": "wp-scripts lint-pkg-json",
-    "packages-update": "wp-scripts packages-update",
-    "start": "wp-scripts start",
-    "test": "npm run test:e2e && npm run test:unit",
-    "test:e2e": "wp-scripts test-e2e --passWithNoTests",
-    "test:unit": "wp-scripts test-unit-js --passWithNoTests"
-  }
+	"name": "automatically-paginate-posts",
+	"version": "0.1.0",
+	"main": "Gruntfile.js",
+	"author": "Erick Hitter & Oomph, Inc.",
+	"devDependencies": {
+		"@wordpress/icons": "^9.2.0",
+		"@wordpress/scripts": "^23.3.0",
+		"grunt": "^1.5.3",
+		"grunt-wp-i18n": "^1.0.3",
+		"grunt-wp-readme-to-markdown": "^2.1.0",
+		"prettier": "npm:wp-prettier@^2.6.2"
+	},
+	"scripts": {
+		"build": "wp-scripts build",
+		"check-engines": "wp-scripts check-engines",
+		"check-licenses": "wp-scripts check-licenses",
+		"format": "wp-scripts format",
+		"grunt": "grunt",
+		"lint:css": "wp-scripts lint-style",
+		"lint:js": "wp-scripts lint-js",
+		"lint:md:docs": "wp-scripts lint-md-docs",
+		"lint:pkg-json": "wp-scripts lint-pkg-json",
+		"packages-update": "wp-scripts packages-update",
+		"start": "wp-scripts start",
+		"test": "npm run test:e2e && npm run test:unit",
+		"test:e2e": "wp-scripts test-e2e --passWithNoTests",
+		"test:unit": "wp-scripts test-unit-js --passWithNoTests"
+	}
 }

@@ -508,7 +508,7 @@ class Automatically_Paginate_Posts {
 				continue;
 			}
 
-			add_meta_box( 'autopaging', __( 'Post Autopaging', 'autopaging' ), array( $this, 'meta_box_autopaging' ), $post_type, 'side' );
+			add_meta_box( 'autopaging', __( 'Autopaging', 'autopaging' ), array( $this, 'meta_box_autopaging' ), $post_type, 'side' );
 		}
 	}
 
@@ -522,7 +522,10 @@ class Automatically_Paginate_Posts {
 	public function meta_box_autopaging( $post ) {
 		?>
 		<p>
-			<input type="checkbox" name="<?php echo esc_attr( $this->meta_key_disable_autopaging ); ?>" id="<?php echo esc_attr( $this->meta_key_disable_autopaging ); ?>_checkbox" value="1"<?php checked( (bool) get_post_meta( $post->ID, $this->meta_key_disable_autopaging, true ) ); ?> /> <label for="<?php echo esc_attr( $this->meta_key_disable_autopaging ); ?>_checkbox">Disable autopaging for this post?</label>
+			<input type="checkbox" name="<?php echo esc_attr( $this->meta_key_disable_autopaging ); ?>" id="<?php echo esc_attr( $this->meta_key_disable_autopaging ); ?>_checkbox" value="1"<?php checked( (bool) get_post_meta( $post->ID, $this->meta_key_disable_autopaging, true ) ); ?> />
+			<label for="<?php echo esc_attr( $this->meta_key_disable_autopaging ); ?>_checkbox">
+				<?php esc_html_e( 'Disable autopaging for this post?', 'autopaging' ); ?>
+			</label>
 		</p>
 		<p class="description"><?php esc_html__( 'Check the box above to prevent this post from automatically being split over multiple pages.', 'autopaging' ); ?></p>
 		<p class="description">
@@ -563,7 +566,7 @@ class Automatically_Paginate_Posts {
 		}
 
 		if ( isset( $_POST[ $this->meta_key_disable_autopaging . '_wpnonce' ] ) && wp_verify_nonce( $_POST[ $this->meta_key_disable_autopaging . '_wpnonce' ], $this->meta_key_disable_autopaging ) ) {
-			$disable = isset( $_POST[ $this->meta_key_disable_autopaging ] ) ? true : false;
+			$disable = isset( $_POST[ $this->meta_key_disable_autopaging ] );
 
 			if ( $disable ) {
 				update_post_meta( $post_id, $this->meta_key_disable_autopaging, true );
