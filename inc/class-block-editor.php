@@ -133,9 +133,9 @@ class Block_Editor {
 		wp_localize_script(
 			$asset_handle,
 			'autopagingSettings',
-			[
+			array(
 				'metaKey' => $this->autopaging_instance->meta_key,
-			]
+			)
 		);
 
 		wp_set_script_translations(

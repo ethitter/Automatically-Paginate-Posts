@@ -180,7 +180,7 @@ class Automatically_Paginate_Posts {
 			if ( ! did_action( 'init' ) ) {
 				_doing_it_wrong(
 					__METHOD__,
-					__(
+					esc_html__(
 						'Post types can only be retrieved after the "init" hook.',
 						'autopaging'
 					),
