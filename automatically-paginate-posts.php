@@ -320,19 +320,22 @@ class Automatically_Paginate_Posts {
 		}
 
 		$labels = array(
-			'pages' => __( 'Total number of pages: ', 'autopaging' ),
-			'words' => __( 'Approximate words per page: ', 'autopaging' ),
+			'pages' => __( 'Total number of pages:', 'autopaging' ),
+			'words' => __( 'Approximate words per page:', 'autopaging' ),
 		);
 
 		foreach ( $this->paging_types_allowed as $type ) :
 			$func = 'settings_field_num_' . $type;
 			?>
-			<p><input type="radio" name="<?php echo esc_attr( $this->option_name_paging_type ); ?>" id="autopaging-type-<?php echo esc_attr( $type ); ?>" value="<?php echo esc_attr( $type ); ?>"<?php checked( $type, $paging_type ); ?> /> <label for="autopaging-type-<?php echo esc_attr( $type ); ?>">
-				<strong>
+			<p>
+				<input type="radio" name="<?php echo esc_attr( $this->option_name_paging_type ); ?>" id="autopaging-type-<?php echo esc_attr( $type ); ?>" value="<?php echo esc_attr( $type ); ?>"<?php checked( $type, $paging_type ); ?> />
+				<label for="autopaging-type-<?php echo esc_attr( $type ); ?>">
 					<?php echo esc_html( $labels[ $type ] ); ?>
-				</strong>
-				<?php $this->{$func}(); ?>
-			</label></p>
+					&nbsp;
+					<?php $this->{$func}(); ?>
+				</label>
+			</p>
+			<br />
 			<?php
 		endforeach;
 	}
@@ -386,9 +389,16 @@ class Automatically_Paginate_Posts {
 	public function settings_field_num_words() {
 		$num_words = apply_filters( 'autopaging_num_words', get_option( $this->option_name_num_words ) )
 		?>
-			<input name="<?php echo esc_attr( $this->option_name_num_words ); ?>" value="<?php echo esc_attr( $num_words ); ?>" size="4" />
+			<input
+				name="<?php echo esc_attr( $this->option_name_num_words ); ?>"
+				value="<?php echo esc_attr( $num_words ); ?>"
+				class="small-text"
+				type="number"
+				step="1"
+				min="1"
+			/>
 
-			<p class="description"><?php _e( 'If chosen, each page will contain approximately this many words, depending on paragraph lengths.', 'autopaging' ); ?></p>
+			<p class="description"><?php esc_html_e( 'If chosen, each page will contain approximately this many words, depending on paragraph lengths.', 'autopaging' ); ?></p>
 		<?php
 	}
 
