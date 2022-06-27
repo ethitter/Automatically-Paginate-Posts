@@ -588,77 +588,71 @@ class Automatically_Paginate_Posts {
 		// Normalize post content to simplify paragraph counting and automatic paging. Accounts for content that hasn't been cleaned up by TinyMCE.
 		$content = preg_replace( '#<p>(.+?)</p>#i', "$1\r\n\r\n", $content );
 		$content = preg_replace( '#<br(\s*/)?>#i', "\r\n", $content );
+		$content = explode( "\r\n\r\n", $content );
 
-		// Count paragraphs.
-		$count = preg_match_all( '#\r\n\r\n#', $content );
+		// Count number of paragraphs content was exploded to.
+		$count = count( $content );
 
-		// Keep going, if we have something to count.
-		if ( is_int( $count ) && 0 < $count ) {
-			// Explode content at double (or more) line breaks.
-			$content = explode( "\r\n\r\n", $content );
-
-			switch ( $paging_type ) {
-				case 'words':
-					$word_counter = 0;
-
-					// Count words per paragraph and break after the paragraph that exceeds the set threshold.
-					foreach ( $content as $index => $paragraph ) {
-						$word_counter += mb_strlen(
-							wp_strip_all_tags(
-								$paragraph
-							)
-						);
-
-						if ( $word_counter >= $num_words ) {
-							$content[ $index ] .= '<!--nextpage-->';
-							$word_counter = 0;
-						}
-					}
-
-					break;
-
-				case 'pages':
-				default:
-					// Count number of paragraphs content was exploded to.
-					$count = count( $content );
-
-					$frequency = $this->get_insertion_frequency_by_pages(
-						$count,
-						$num_pages
-					);
-
-					$i = $this->get_initial_counter_for_pages(
-						$count,
-						$num_pages
-					);
-
-					// Loop through content pieces and append Quicktag as is appropriate.
-					foreach ( $content as $key => $value ) {
-						if ( $this->is_at_end_for_pages( $key, $count ) ) {
-							break;
-						}
-
-						if (
-							$this->is_insertion_point_for_pages(
-								$key,
-								$i,
-								$frequency
-							)
-						) {
-							$content[ $key ] .= '<!--nextpage-->';
-							$i++;
-						}
-					}
-
-					break;
-			}
-
-			// Reunite content.
-			$content = implode( "\r\n\r\n", $content );
-
-			// And, overwrite the original content.
-			$the_post->post_content = $content;
+		// Nothing to do, goodbye.
+		if ( $count <= 1 ) {
+			return;
 		}
+
+		switch ( $paging_type ) {
+			case 'words':
+				$word_counter = 0;
+
+				// Count words per paragraph and break after the paragraph that exceeds the set threshold.
+				foreach ( $content as $index => $paragraph ) {
+					$word_counter += mb_strlen(
+						wp_strip_all_tags(
+							$paragraph
+						)
+					);
+
+					if ( $word_counter >= $num_words ) {
+						$content[ $index ] .= '<!--nextpage-->';
+						$word_counter = 0;
+					}
+				}
+
+				break;
+
+			case 'pages':
+			default:
+				$frequency = $this->get_insertion_frequency_by_pages(
+					$count,
+					$num_pages
+				);
+
+				$i = 1;
+
+				// Loop through content pieces and append Quicktag as is appropriate.
+				foreach ( $content as $key => $value ) {
+					if ( $this->is_at_end_for_pages( $key, $count ) ) {
+						break;
+					}
+
+					if (
+						$this->is_insertion_point_for_pages(
+							$key,
+							$i,
+							$frequency
+						)
+					) {
+						$content[ $key ] .= '<!--nextpage-->';
+						$i++;
+					}
+				}
+
+				break;
+		}
+
+		// Reunite content.
+		$content = implode( "\r\n\r\n", $content );
+
+		// And, overwrite the original content.
+		$the_post->post_content = $content;
 	}
 
 	/**
@@ -719,7 +713,7 @@ class Automatically_Paginate_Posts {
 					$num_pages
 				);
 
-				$i = $this->get_initial_counter_for_pages( $count, $num_pages );
+				$i = 1;
 
 				foreach ( $blocks as $key => $block ) {
 					$new_blocks[] = $block;
@@ -761,17 +755,6 @@ class Automatically_Paginate_Posts {
 		}
 
 		return $frequency;
-	}
-
-	/**
-	 * Get counter starting value for use when splitting by pages.
-	 *
-	 * @param int $count     Total number of paragraphs.
-	 * @param int $num_pages Desired number of pages.
-	 * @return int
-	 */
-	protected function get_initial_counter_for_pages( $count, $num_pages ) {
-		return $count - 1 === $num_pages ? 2 : 1;
 	}
 
 	/**
