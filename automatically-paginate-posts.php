@@ -24,7 +24,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ * @package automatically-paginate-posts
  */
+
+require_once dirname( __FILE__ ) . '/inc/class-block-editor.php';
 
 /**
  * Class Automatically_Paginate_Posts.
@@ -132,12 +136,22 @@ class Automatically_Paginate_Posts {
 	private $meta_key_disable_autopaging = '_disable_autopaging';
 
 	/**
-	 * Register hooks.
+	 * Class constructor.
 	 *
-	 * @uses add_action, register_uninstall_hook, add_filter
 	 * @return void
 	 */
 	public function __construct() {
+		$this->setup_hooks();
+
+		new Automatically_Paginate_Posts\Block_Editor( $this );
+	}
+
+	/**
+	 * Register hooks.
+	 *
+	 * @return void
+	 */
+	protected function setup_hooks() {
 		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
 		add_action( 'init', array( $this, 'action_init' ) );
 
@@ -150,6 +164,65 @@ class Automatically_Paginate_Posts {
 		add_action( 'add_meta_boxes', array( $this, 'action_add_meta_boxes' ) );
 		add_action( 'save_post', array( $this, 'action_save_post' ) );
 		add_filter( 'the_posts', array( $this, 'filter_the_posts' ) );
+	}
+	/**
+	 * Allow access to meta key for disabling autopaging.
+	 *
+	 * @param string $name Property name.
+	 * @return array|string|null
+	 */
+	public function __get( $name ) {
+		if ( 'meta_key' === $name ) {
+			return $this->meta_key_disable_autopaging;
+		}
+
+		if ( 'post_types' === $name ) {
+			if ( ! did_action( 'init' ) ) {
+				_doing_it_wrong(
+					__METHOD__,
+					__(
+						'Post types can only be retrieved after the "init" hook.',
+						'autopaging'
+					),
+					'0.3'
+				);
+
+				return null;
+			}
+
+			return $this->post_types;
+		}
+
+		return null;
+	}
+
+	/**
+	 * Prevent setting properties.
+	 *
+	 * @param string $name  Property name.
+	 * @param string $value Property value.
+	 * @return false
+	 */
+	public function __set( $name, $value ) {
+		return false;
+	}
+
+	/**
+	 * Indicate if a property is set.
+	 *
+	 * @param string $name Property name.
+	 * @return bool
+	 */
+	public function __isset( $name ) {
+		if ( 'meta_key' === $name ) {
+			return true;
+		}
+
+		if ( 'post_types' === $name ) {
+			return did_action( 'init' );
+		}
+
+		return false;
 	}
 
 	/**
@@ -428,6 +501,13 @@ class Automatically_Paginate_Posts {
 	 */
 	public function action_add_meta_boxes() {
 		foreach ( $this->post_types as $post_type ) {
+			if (
+				function_exists( 'use_block_editor_for_post_type' ) &&
+				use_block_editor_for_post_type( $post_type )
+			) {
+				continue;
+			}
+
 			add_meta_box( 'autopaging', __( 'Post Autopaging', 'autopaging' ), array( $this, 'meta_box_autopaging' ), $post_type, 'side' );
 		}
 	}
@@ -472,6 +552,13 @@ class Automatically_Paginate_Posts {
 	 */
 	public function action_save_post( $post_id ) {
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+			return;
+		}
+
+		if (
+			function_exists( 'use_block_editor_for_post' )
+			&& use_block_editor_for_post( $post_id )
+		) {
 			return;
 		}
 
