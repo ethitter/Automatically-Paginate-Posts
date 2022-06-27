@@ -719,7 +719,7 @@ class Automatically_Paginate_Posts {
 					$new_blocks[] = $block;
 
 					if ( $this->is_at_end_for_pages( $key, $count ) ) {
-						continue;
+						break;
 					}
 
 					if (
