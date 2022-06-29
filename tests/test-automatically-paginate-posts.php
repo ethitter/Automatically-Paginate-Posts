@@ -378,9 +378,11 @@ class Test_Automatically_Paginate_Posts extends WP_UnitTestCase {
 /**
  * Test class for admin-related restrictions.
  *
- * phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound
+ * phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound
  */
 class Test_Autopaging_Admin {
+	// phpcs:enable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound
+
 	/**
 	 * Mock being in wp-admin.
 	 *
