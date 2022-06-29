@@ -8,11 +8,11 @@ Stable tag: 0.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Automatically paginate posts by inserting the `&lt;!--nextpage--&gt;` Quicktag.
+Automatically paginate posts by inserting the `<!--nextpage-->` Quicktag.
 
 == Description ==
 
-Automatically paginate WordPress content by inserting the `&lt;!--nextpage--&gt;` Quicktag at intervals controlled by plugin's settings.
+Automatically paginate WordPress content by inserting the `<!--nextpage-->` Quicktag at intervals controlled by plugin's settings.
 
 Option is provided to control which post types are automatically paginated (default is the "Post" post type). Supports any public custom post types (non-public types are supported via the `autopaging_post_types` filter).
 
