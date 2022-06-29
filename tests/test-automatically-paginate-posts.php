@@ -86,9 +86,9 @@ class Test_Automatically_Paginate_Posts extends WP_UnitTestCase {
 
 		$GLOBALS['current_screen'] = new Test_Autopaging_Admin();
 
-		$test_posts = [
+		$test_posts = array(
 			'unit-test',
-		];
+		);
 
 		$this->assertEquals(
 			$test_posts,
@@ -111,6 +111,8 @@ class Test_Automatically_Paginate_Posts extends WP_UnitTestCase {
 	public function test_filter_the_posts( $expected, $input ) {
 		$post = $this->factory->post->create_and_get( $input['post_args'] );
 
+		// Bug in WPCS causes errors when `use` is used.
+		// phpcs:disable WordPress.WhiteSpace.ControlStructureSpacing.NoSpaceAfterStructureOpen, WordPress.WhiteSpace.ControlStructureSpacing.NoSpaceBeforeOpenParenthesis
 		add_filter(
 			'pre_option_pages',
 			static function() use( $input ) {
@@ -129,10 +131,11 @@ class Test_Automatically_Paginate_Posts extends WP_UnitTestCase {
 				return $input['num_words'];
 			}
 		);
+		// phpcs:enable WordPress.WhiteSpace.ControlStructureSpacing.NoSpaceAfterStructureOpen, WordPress.WhiteSpace.ControlStructureSpacing.NoSpaceBeforeOpenParenthesis
 
 		$this->assertEquals(
 			$expected,
-			$this->_instance->filter_the_posts( [ $post ] )[0]->post_content
+			$this->_instance->filter_the_posts( array( $post ) )[0]->post_content
 		);
 	}
 
@@ -234,6 +237,7 @@ class Test_Automatically_Paginate_Posts extends WP_UnitTestCase {
 /**
  * Test class for admin-related restrictions.
  */
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound
 class Test_Autopaging_Admin {
 	/**
 	 * Mock being in wp-admin.
