@@ -30,20 +30,18 @@ const View = ( { disabled, hasQuicktag, setDisabled } ) => (
 		) }
 
 		{ ! hasQuicktag && (
-			<>
-				<ToggleControl
-					label={ __(
-						'Disable autopaging for this post?',
-						'autopaging'
-					) }
-					help={ __(
-						'Check the box above to prevent this post from automatically being split over multiple pages.',
-						'autopaging'
-					) }
-					checked={ disabled }
-					onChange={ setDisabled }
-				/>
-			</>
+			<ToggleControl
+				label={ __(
+					'Disable autopaging for this post?',
+					'autopaging'
+				) }
+				help={ __(
+					'Check the box above to prevent this post from automatically being split over multiple pages.',
+					'autopaging'
+				) }
+				checked={ disabled }
+				onChange={ setDisabled }
+			/>
 		) }
 	</>
 );
