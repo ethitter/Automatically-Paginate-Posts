@@ -37,12 +37,12 @@ class Automatically_Paginate_Posts {
 	/**
 	 * WordPress Quicktag that creates pagination.
 	 */
-	protected const QUICKTAG = '<!--nextpage-->';
+	const QUICKTAG = '<!--nextpage-->';
 
 	/**
 	 * String length of nextpage Quicktag.
 	 */
-	protected const QUICKTAG_LENGTH = 15;
+	const QUICKTAG_LENGTH = 15;
 
 	/**
 	 * Supported post types.
@@ -546,7 +546,7 @@ class Automatically_Paginate_Posts {
 						'Note that if the %1$s Quicktag is used to manually page this post, automatic paging won\'t be applied, regardless of the setting above.',
 						'autopaging'
 					),
-					'<code>&lt;!--nextpage--&gt;</code>'
+					'<code>' . htmlentities(static::QUICKTAG, ENT_QUOTES ) . '</code>'
 				);
 			?>
 		</p>
@@ -618,7 +618,7 @@ class Automatically_Paginate_Posts {
 
 			if (
 				preg_match(
-					'#<!--nextpage-->#i',
+					'#' . static::QUICKTAG . '#i',
 					$the_post->post_content
 				)
 			) {
@@ -768,7 +768,7 @@ class Automatically_Paginate_Posts {
 							$frequency
 						)
 					) {
-						$content[ $key ] .= '<!--nextpage-->';
+						$content[ $key ] .= static::QUICKTAG;
 						$i++;
 					}
 				}
@@ -926,7 +926,7 @@ class Automatically_Paginate_Posts {
 		if ( ! $block ) {
 			$_block = parse_blocks(
 				'<!-- wp:nextpage -->
-<!--nextpage-->
+' . static::QUICKTAG . '
 <!-- /wp:nextpage -->'
 			);
 
