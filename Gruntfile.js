@@ -7,7 +7,7 @@ module.exports = function ( grunt ) {
 
 		addtextdomain: {
 			options: {
-				textdomain: 'autopaging',
+				textdomain: 'automatically-paginate-posts',
 			},
 			update_all_domains: {
 				options: {

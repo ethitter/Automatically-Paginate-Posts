@@ -4,7 +4,7 @@ Donate link:
 **Tags:** paginate, nextpage, Quicktag  
 **Requires at least:** 3.4  
 **Tested up to:** 6.0  
-**Stable tag:** 0.3  
+**Stable tag:** 0.3.1  
 **License:** GPLv2 or later  
 **License URI:** http://www.gnu.org/licenses/gpl-2.0.html  
 
@@ -48,6 +48,9 @@ You can also use the filter `autopaging_post_types` to add support by appending 
 
 ## Changelog ##
 
+### 0.3.1 ###
+* Fix translation support.
+
 ### 0.3 ###
 * Add support for content authored in block editor (Gutenberg).
 * Add native block-editor control to replace legacy metabox.
@@ -60,6 +63,9 @@ You can also use the filter `autopaging_post_types` to add support by appending 
 * Initial release.
 
 ## Upgrade Notice ##
+
+### 0.3.1 ###
+Fixes translation support.
 
 ### 0.3 ###
 Add support for block editor and fix bug that created empty pages.

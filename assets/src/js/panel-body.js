@@ -23,7 +23,7 @@ const View = ( { disabled, hasQuicktag, setDisabled } ) => (
 				dangerouslySetInnerHTML={ {
 					__html: __(
 						'Autopaging is disabled because the <em>Page Break</em> block is used.',
-						'autopaging'
+						'automatically-paginate-posts'
 					),
 				} }
 			/>
@@ -33,11 +33,11 @@ const View = ( { disabled, hasQuicktag, setDisabled } ) => (
 			<ToggleControl
 				label={ __(
 					'Disable autopaging for this post?',
-					'autopaging'
+					'automatically-paginate-posts'
 				) }
 				help={ __(
 					'Check the box above to prevent this post from automatically being split over multiple pages.',
-					'autopaging'
+					'automatically-paginate-posts'
 				) }
 				checked={ disabled }
 				onChange={ setDisabled }

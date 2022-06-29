@@ -15,7 +15,7 @@ const slug = 'autopaging';
 const View = () => (
 	<PluginDocumentSettingPanel
 		name={ slug }
-		title={ __( 'Autopaging', 'autopaging' ) }
+		title={ __( 'Autopaging', 'automatically-paginate-posts' ) }
 		className={ slug }
 	>
 		<PanelBody />

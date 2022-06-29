@@ -5,10 +5,10 @@
  * Plugin Name: Automatically Paginate Posts
  * Plugin URI: http://www.oomphinc.com/plugins-modules/automatically-paginate-posts/
  * Description: Automatically inserts the &lt;!--nextpage--&gt; Quicktag into WordPress posts, pages, or custom post type content.
- * Version: 0.3
+ * Version: 0.3.1
  * Author: Erick Hitter & Oomph, Inc.
  * Author URI: http://www.oomphinc.com/
- * Text Domain: autopaging
+ * Text Domain: automatically-paginate-posts
  * Domain Path: /languages/
  *
  * This program is free software; you can redistribute it and/or modify
@@ -192,7 +192,7 @@ class Automatically_Paginate_Posts {
 					__METHOD__,
 					esc_html__(
 						'Post types can only be retrieved after the "init" hook.',
-						'autopaging'
+						'automatically-paginate-posts'
 					),
 					'0.3'
 				);
@@ -242,7 +242,7 @@ class Automatically_Paginate_Posts {
 	 */
 	public function load_textdomain() {
 		load_plugin_textdomain(
-			'autopaging',
+			'automatically-paginate-posts',
 			false,
 			dirname( plugin_basename( __FILE__ ) ) . '/languages/'
 		);
@@ -323,9 +323,9 @@ class Automatically_Paginate_Posts {
 		register_setting( 'reading', $this->option_name_num_pages, array( $this, 'sanitize_num_pages' ) );
 		register_setting( 'reading', $this->option_name_num_words, array( $this, 'sanitize_num_words' ) );
 
-		add_settings_section( 'autopaging', __( 'Automatically Paginate Posts', 'autopaging' ), '__return_false', 'reading' );
-		add_settings_field( 'autopaging-post-types', __( 'Supported post types:', 'autopaging' ), array( $this, 'settings_field_post_types' ), 'reading', 'autopaging' );
-		add_settings_field( 'autopaging-paging-type', __( 'Split post by:', 'autopaging' ), array( $this, 'settings_field_paging_type' ), 'reading', 'autopaging' );
+		add_settings_section( 'autopaging', __( 'Automatically Paginate Posts', 'automatically-paginate-posts' ), '__return_false', 'reading' );
+		add_settings_field( 'autopaging-post-types', __( 'Supported post types:', 'automatically-paginate-posts' ), array( $this, 'settings_field_post_types' ), 'reading', 'autopaging' );
+		add_settings_field( 'autopaging-paging-type', __( 'Split post by:', 'automatically-paginate-posts' ), array( $this, 'settings_field_paging_type' ), 'reading', 'autopaging' );
 	}
 
 	/**
@@ -403,8 +403,8 @@ class Automatically_Paginate_Posts {
 		}
 
 		$labels = array(
-			'pages' => __( 'Total number of pages:', 'autopaging' ),
-			'words' => __( 'Approximate words per page:', 'autopaging' ),
+			'pages' => __( 'Total number of pages:', 'automatically-paginate-posts' ),
+			'words' => __( 'Approximate words per page:', 'automatically-paginate-posts' ),
 		);
 
 		foreach ( $this->paging_types_allowed as $type ) :
@@ -481,7 +481,7 @@ class Automatically_Paginate_Posts {
 				min="1"
 			/>
 
-			<p class="description"><?php esc_html_e( 'If chosen, each page will contain approximately this many words, depending on paragraph lengths.', 'autopaging' ); ?></p>
+			<p class="description"><?php esc_html_e( 'If chosen, each page will contain approximately this many words, depending on paragraph lengths.', 'automatically-paginate-posts' ); ?></p>
 		<?php
 	}
 
@@ -518,7 +518,7 @@ class Automatically_Paginate_Posts {
 				continue;
 			}
 
-			add_meta_box( 'autopaging', __( 'Autopaging', 'autopaging' ), array( $this, 'meta_box_autopaging' ), $post_type, 'side' );
+			add_meta_box( 'autopaging', __( 'Autopaging', 'automatically-paginate-posts' ), array( $this, 'meta_box_autopaging' ), $post_type, 'side' );
 		}
 	}
 
@@ -534,17 +534,17 @@ class Automatically_Paginate_Posts {
 		<p>
 			<input type="checkbox" name="<?php echo esc_attr( $this->meta_key_disable_autopaging ); ?>" id="<?php echo esc_attr( $this->meta_key_disable_autopaging ); ?>_checkbox" value="1"<?php checked( (bool) get_post_meta( $post->ID, $this->meta_key_disable_autopaging, true ) ); ?> />
 			<label for="<?php echo esc_attr( $this->meta_key_disable_autopaging ); ?>_checkbox">
-				<?php esc_html_e( 'Disable autopaging for this post?', 'autopaging' ); ?>
+				<?php esc_html_e( 'Disable autopaging for this post?', 'automatically-paginate-posts' ); ?>
 			</label>
 		</p>
-		<p class="description"><?php esc_html__( 'Check the box above to prevent this post from automatically being split over multiple pages.', 'autopaging' ); ?></p>
+		<p class="description"><?php esc_html__( 'Check the box above to prevent this post from automatically being split over multiple pages.', 'automatically-paginate-posts' ); ?></p>
 		<p class="description">
 			<?php
 				printf(
 					/* translators: 1. Quicktag code example. */
 					esc_html__(
 						'Note that if the %1$s Quicktag is used to manually page this post, automatic paging won\'t be applied, regardless of the setting above.',
-						'autopaging'
+						'automatically-paginate-posts'
 					),
 					// No need to escape a class constant.
 					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
