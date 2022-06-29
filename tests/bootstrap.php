@@ -5,7 +5,7 @@
  * @package Automatically_Paginate_Posts
  */
 
-$autopaging_tests_dir = getenv( 'WPautopaging_tests_dir' );
+$autopaging_tests_dir = getenv( 'WP_TESTS_DIR' );
 
 if ( ! $autopaging_tests_dir ) {
 	$autopaging_tests_dir = rtrim( sys_get_temp_dir(), '/\\' ) . '/wordpress-tests-lib';
