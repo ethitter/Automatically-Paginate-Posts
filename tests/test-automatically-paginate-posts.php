@@ -112,8 +112,18 @@ class Test_Automatically_Paginate_Posts extends WP_UnitTestCase {
 		$post = $this->factory->post->create_and_get( $input['post_args'] );
 
 		update_option( 'autopaging_paging_type', $input['type'] );
-		update_option( 'autopaging_num_pages', $input['num_pages'] );
-		update_option( 'autopaging_num_words', $input['num_words'] );
+		add_filter(
+			'autopaging_num_pages',
+			static function() use( $input ) {
+				return $input['num_pages'];
+			}
+		);
+		add_filter(
+			'autopaging_num_words',
+			static function() use( $input ) {
+				return $input['num_words'];
+			}
+		);
 
 		$this->assertEquals(
 			$expected,
@@ -161,6 +171,18 @@ class Test_Automatically_Paginate_Posts extends WP_UnitTestCase {
 					),
 					'type'      => 'pages',
 					'num_pages' => 2,
+					'num_words' => 2,
+				),
+			),
+			'Classic post, three pages' => array(
+				"1<!--nextpage-->\r\n\r\n2<!--nextpage-->\r\n\r\n3",
+				array(
+					'post_args' => array(
+						'post_type'    => 'post',
+						'post_content' => "1\r\n\r\n2\r\n\r\n3",
+					),
+					'type'      => 'pages',
+					'num_pages' => 3,
 					'num_words' => 2,
 				),
 			),
