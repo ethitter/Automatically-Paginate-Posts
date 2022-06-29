@@ -2,10 +2,10 @@
 # This file is distributed under the same license as the Automatically Paginate Posts package.
 msgid ""
 msgstr ""
-"Project-Id-Version: Automatically Paginate Posts 0.2\n"
+"Project-Id-Version: Automatically Paginate Posts 0.3\n"
 "Report-Msgid-Bugs-To: "
 "https://wordpress.org/support/plugin/automatically-paginate-posts\n"
-"POT-Creation-Date: 2022-06-26 20:46:38+00:00\n"
+"POT-Creation-Date: 2022-06-29 04:16:26+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -25,47 +25,59 @@ msgstr ""
 "X-Textdomain-Support: yes\n"
 "X-Generator: grunt-wp-i18n 1.0.3\n"
 
+#: automatically-paginate-posts.php:193
+msgid "Post types can only be retrieved after the \"init\" hook."
+msgstr ""
+
 #. Plugin Name of the plugin/theme
 msgid "Automatically Paginate Posts"
 msgstr ""
 
-#: automatically-paginate-posts.php:223
+#: automatically-paginate-posts.php:327
 msgid "Supported post types:"
 msgstr ""
 
-#: automatically-paginate-posts.php:224
+#: automatically-paginate-posts.php:328
 msgid "Split post by:"
 msgstr ""
 
-#: automatically-paginate-posts.php:302
-msgid "Total number of pages: "
+#: automatically-paginate-posts.php:406
+msgid "Total number of pages:"
 msgstr ""
 
-#: automatically-paginate-posts.php:303
-msgid "Approximate words per page: "
+#: automatically-paginate-posts.php:407
+msgid "Approximate words per page:"
 msgstr ""
 
-#: automatically-paginate-posts.php:370
+#: automatically-paginate-posts.php:484
 msgid ""
 "If chosen, each page will contain approximately this many words, depending "
 "on paragraph lengths."
 msgstr ""
 
-#: automatically-paginate-posts.php:400
-msgid "Post Autopaging"
+#: automatically-paginate-posts.php:521
+msgid "Autopaging"
 msgstr ""
 
-#: automatically-paginate-posts.php:416
+#: automatically-paginate-posts.php:537
+msgid "Disable autopaging for this post?"
+msgstr ""
+
+#: automatically-paginate-posts.php:540
 msgid ""
 "Check the box above to prevent this post from automatically being split "
 "over multiple pages."
 msgstr ""
 
-#: automatically-paginate-posts.php:421
+#: automatically-paginate-posts.php:545
 #. translators: 1. Quicktag code example.
 msgid ""
 "Note that if the %1$s Quicktag is used to manually page this post, "
 "automatic paging won't be applied, regardless of the setting above."
+msgstr ""
+
+#: inc/class-block-editor.php:65
+msgid "Whether or not to disable pagination for this post."
 msgstr ""
 
 #. Plugin URI of the plugin/theme

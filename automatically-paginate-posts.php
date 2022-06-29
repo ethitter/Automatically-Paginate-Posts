@@ -5,7 +5,7 @@
  * Plugin Name: Automatically Paginate Posts
  * Plugin URI: http://www.oomphinc.com/plugins-modules/automatically-paginate-posts/
  * Description: Automatically inserts the &lt;!--nextpage--&gt; Quicktag into WordPress posts, pages, or custom post type content.
- * Version: 0.2
+ * Version: 0.3
  * Author: Erick Hitter & Oomph, Inc.
  * Author URI: http://www.oomphinc.com/
  * Text Domain: autopaging
@@ -24,12 +24,26 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ * @package automatically-paginate-posts
  */
+
+require_once dirname( __FILE__ ) . '/inc/class-block-editor.php';
 
 /**
  * Class Automatically_Paginate_Posts.
  */
 class Automatically_Paginate_Posts {
+	/**
+	 * WordPress Quicktag that creates pagination.
+	 */
+	const QUICKTAG = '<!--nextpage-->';
+
+	/**
+	 * String length of nextpage Quicktag.
+	 */
+	const QUICKTAG_LENGTH = 15;
+
 	/**
 	 * Supported post types.
 	 *
@@ -63,14 +77,31 @@ class Automatically_Paginate_Posts {
 	 *
 	 * @var int
 	 */
-	private $num_pages_default   = 2;
+	private $num_pages_default = 2;
+
+	/**
+	 * Desired number of words per pages.
+	 *
+	 * @var int
+	 */
+	private $num_words;
 
 	/**
 	 * Default number of words to split on.
 	 *
 	 * @var string|int
 	 */
-	private $num_words_default   = '';
+	private $num_words_default = '';
+
+	/**
+	 * When splitting by word counts, these blocks are considered. Tags are
+	 * stripped and remaining content is counted.
+	 *
+	 * @var array
+	 */
+	private $supported_block_types_for_word_counts = array(
+		'core/paragraph',
+	);
 
 	/**
 	 * Allowed split types.
@@ -79,14 +110,12 @@ class Automatically_Paginate_Posts {
 	 */
 	private $paging_types_allowed = array( 'pages', 'words' );
 
-	// Ensure option names match values in `uninstall()` method.
-
 	/**
 	 * Supported-post-types option name.
 	 *
 	 * @var string
 	 */
-	private $option_name_post_types  = 'autopaging_post_types';
+	private $option_name_post_types = 'autopaging_post_types';
 
 	/**
 	 * Split-type option name.
@@ -100,14 +129,14 @@ class Automatically_Paginate_Posts {
 	 *
 	 * @var string
 	 */
-	private $option_name_num_pages   = 'autopaging_num_pages';
+	private $option_name_num_pages = 'autopaging_num_pages';
 
 	/**
 	 * Option holding number of words to split on.
 	 *
 	 * @var string
 	 */
-	private $option_name_num_words   = 'autopaging_num_words';
+	private $option_name_num_words = 'autopaging_num_words';
 
 	/**
 	 * Meta key used to indicate that a post shouldn't be automatically split.
@@ -117,12 +146,22 @@ class Automatically_Paginate_Posts {
 	private $meta_key_disable_autopaging = '_disable_autopaging';
 
 	/**
-	 * Register hooks.
+	 * Class constructor.
 	 *
-	 * @uses add_action, register_uninstall_hook, add_filter
 	 * @return void
 	 */
 	public function __construct() {
+		$this->setup_hooks();
+
+		new Automatically_Paginate_Posts\Block_Editor( $this );
+	}
+
+	/**
+	 * Register hooks.
+	 *
+	 * @return void
+	 */
+	protected function setup_hooks() {
 		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
 		add_action( 'init', array( $this, 'action_init' ) );
 
@@ -135,6 +174,65 @@ class Automatically_Paginate_Posts {
 		add_action( 'add_meta_boxes', array( $this, 'action_add_meta_boxes' ) );
 		add_action( 'save_post', array( $this, 'action_save_post' ) );
 		add_filter( 'the_posts', array( $this, 'filter_the_posts' ) );
+	}
+	/**
+	 * Allow access to meta key for disabling autopaging.
+	 *
+	 * @param string $name Property name.
+	 * @return array|string|null
+	 */
+	public function __get( $name ) {
+		if ( 'meta_key' === $name ) {
+			return $this->meta_key_disable_autopaging;
+		}
+
+		if ( 'post_types' === $name ) {
+			if ( ! did_action( 'init' ) ) {
+				_doing_it_wrong(
+					__METHOD__,
+					esc_html__(
+						'Post types can only be retrieved after the "init" hook.',
+						'autopaging'
+					),
+					'0.3'
+				);
+
+				return null;
+			}
+
+			return $this->post_types;
+		}
+
+		return null;
+	}
+
+	/**
+	 * Prevent setting properties.
+	 *
+	 * @param string $name  Property name.
+	 * @param string $value Property value.
+	 * @return false
+	 */
+	public function __set( $name, $value ) {
+		return false;
+	}
+
+	/**
+	 * Indicate if a property is set.
+	 *
+	 * @param string $name Property name.
+	 * @return bool
+	 */
+	public function __isset( $name ) {
+		if ( 'meta_key' === $name ) {
+			return true;
+		}
+
+		if ( 'post_types' === $name ) {
+			return did_action( 'init' );
+		}
+
+		return false;
 	}
 
 	/**
@@ -173,6 +271,12 @@ class Automatically_Paginate_Posts {
 		if ( 0 == $this->num_words ) {
 			$this->num_words = $this->num_words_default;
 		}
+
+		// Supported blocks for splitting by words.
+		$this->supported_block_types_for_word_counts = apply_filters(
+			'autopaging_supported_block_types_for_word_counts',
+			$this->supported_block_types_for_word_counts
+		);
 	}
 
 	/**
@@ -299,19 +403,22 @@ class Automatically_Paginate_Posts {
 		}
 
 		$labels = array(
-			'pages' => __( 'Total number of pages: ', 'autopaging' ),
-			'words' => __( 'Approximate words per page: ', 'autopaging' ),
+			'pages' => __( 'Total number of pages:', 'autopaging' ),
+			'words' => __( 'Approximate words per page:', 'autopaging' ),
 		);
 
 		foreach ( $this->paging_types_allowed as $type ) :
 			$func = 'settings_field_num_' . $type;
 			?>
-			<p><input type="radio" name="<?php echo esc_attr( $this->option_name_paging_type ); ?>" id="autopaging-type-<?php echo esc_attr( $type ); ?>" value="<?php echo esc_attr( $type ); ?>"<?php checked( $type, $paging_type ); ?> /> <label for="autopaging-type-<?php echo esc_attr( $type ); ?>">
-				<strong>
+			<p>
+				<input type="radio" name="<?php echo esc_attr( $this->option_name_paging_type ); ?>" id="autopaging-type-<?php echo esc_attr( $type ); ?>" value="<?php echo esc_attr( $type ); ?>"<?php checked( $type, $paging_type ); ?> />
+				<label for="autopaging-type-<?php echo esc_attr( $type ); ?>">
 					<?php echo esc_html( $labels[ $type ] ); ?>
-				</strong>
-				<?php $this->{$func}(); ?>
-			</label></p>
+					&nbsp;
+					<?php $this->{$func}(); ?>
+				</label>
+			</p>
+			<br />
 			<?php
 		endforeach;
 	}
@@ -365,9 +472,16 @@ class Automatically_Paginate_Posts {
 	public function settings_field_num_words() {
 		$num_words = apply_filters( 'autopaging_num_words', get_option( $this->option_name_num_words ) )
 		?>
-			<input name="<?php echo esc_attr( $this->option_name_num_words ); ?>" value="<?php echo esc_attr( $num_words ); ?>" size="4" />
+			<input
+				name="<?php echo esc_attr( $this->option_name_num_words ); ?>"
+				value="<?php echo esc_attr( $num_words ); ?>"
+				class="small-text"
+				type="number"
+				step="1"
+				min="1"
+			/>
 
-			<p class="description"><?php _e( 'If chosen, each page will contain approximately this many words, depending on paragraph lengths.', 'autopaging' ); ?></p>
+			<p class="description"><?php esc_html_e( 'If chosen, each page will contain approximately this many words, depending on paragraph lengths.', 'autopaging' ); ?></p>
 		<?php
 	}
 
@@ -397,7 +511,14 @@ class Automatically_Paginate_Posts {
 	 */
 	public function action_add_meta_boxes() {
 		foreach ( $this->post_types as $post_type ) {
-			add_meta_box( 'autopaging', __( 'Post Autopaging', 'autopaging' ), array( $this, 'meta_box_autopaging' ), $post_type, 'side' );
+			if (
+				function_exists( 'use_block_editor_for_post_type' ) &&
+				use_block_editor_for_post_type( $post_type )
+			) {
+				continue;
+			}
+
+			add_meta_box( 'autopaging', __( 'Autopaging', 'autopaging' ), array( $this, 'meta_box_autopaging' ), $post_type, 'side' );
 		}
 	}
 
@@ -411,7 +532,10 @@ class Automatically_Paginate_Posts {
 	public function meta_box_autopaging( $post ) {
 		?>
 		<p>
-			<input type="checkbox" name="<?php echo esc_attr( $this->meta_key_disable_autopaging ); ?>" id="<?php echo esc_attr( $this->meta_key_disable_autopaging ); ?>_checkbox" value="1"<?php checked( (bool) get_post_meta( $post->ID, $this->meta_key_disable_autopaging, true ) ); ?> /> <label for="<?php echo esc_attr( $this->meta_key_disable_autopaging ); ?>_checkbox">Disable autopaging for this post?</label>
+			<input type="checkbox" name="<?php echo esc_attr( $this->meta_key_disable_autopaging ); ?>" id="<?php echo esc_attr( $this->meta_key_disable_autopaging ); ?>_checkbox" value="1"<?php checked( (bool) get_post_meta( $post->ID, $this->meta_key_disable_autopaging, true ) ); ?> />
+			<label for="<?php echo esc_attr( $this->meta_key_disable_autopaging ); ?>_checkbox">
+				<?php esc_html_e( 'Disable autopaging for this post?', 'autopaging' ); ?>
+			</label>
 		</p>
 		<p class="description"><?php esc_html__( 'Check the box above to prevent this post from automatically being split over multiple pages.', 'autopaging' ); ?></p>
 		<p class="description">
@@ -422,7 +546,9 @@ class Automatically_Paginate_Posts {
 						'Note that if the %1$s Quicktag is used to manually page this post, automatic paging won\'t be applied, regardless of the setting above.',
 						'autopaging'
 					),
-					'<code>&lt;!--nextpage--&gt;</code>'
+					// No need to escape a class constant.
+					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					'<code>' . htmlentities( static::QUICKTAG, ENT_QUOTES ) . '</code>'
 				);
 			?>
 		</p>
@@ -444,8 +570,15 @@ class Automatically_Paginate_Posts {
 			return;
 		}
 
+		if (
+			function_exists( 'use_block_editor_for_post' )
+			&& use_block_editor_for_post( $post_id )
+		) {
+			return;
+		}
+
 		if ( isset( $_POST[ $this->meta_key_disable_autopaging . '_wpnonce' ] ) && wp_verify_nonce( $_POST[ $this->meta_key_disable_autopaging . '_wpnonce' ], $this->meta_key_disable_autopaging ) ) {
-			$disable = isset( $_POST[ $this->meta_key_disable_autopaging ] ) ? true : false;
+			$disable = isset( $_POST[ $this->meta_key_disable_autopaging ] );
 
 			if ( $disable ) {
 				update_post_meta( $post_id, $this->meta_key_disable_autopaging, true );
@@ -465,112 +598,349 @@ class Automatically_Paginate_Posts {
 	 * @return array
 	 */
 	public function filter_the_posts( $posts ) {
-		if ( ! is_admin() ) {
-			foreach ( $posts as $the_post ) {
-				if ( in_array( $the_post->post_type, $this->post_types ) && ! preg_match( '#<!--nextpage-->#i', $the_post->post_content ) && ! (bool) get_post_meta( $the_post->ID, $this->meta_key_disable_autopaging, true ) ) {
-					// In-time filtering of number of pages to break over, based on post data. If value is less than 2, nothing should be done.
-					$num_pages = absint( apply_filters( 'autopaging_num_pages', absint( $this->num_pages ), $the_post ) );
-					$num_words = absint( apply_filters( 'autopaging_num_words', absint( $this->num_words ), $the_post ) );
+		if ( is_admin() ) {
+			return $posts;
+		}
 
-					if ( $num_pages < 2 && empty( $num_words ) ) {
-						continue;
-					}
+		$paging_type = get_option(
+			$this->option_name_paging_type,
+			$this->paging_type_default
+		);
 
-					// Start with post content, but alias to protect the raw content.
-					$content = $the_post->post_content;
+		foreach ( $posts as &$the_post ) {
+			if (
+				! in_array(
+					$the_post->post_type,
+					$this->post_types,
+					true
+				)
+			) {
+				continue;
+			}
 
-					// Normalize post content to simplify paragraph counting and automatic paging. Accounts for content that hasn't been cleaned up by TinyMCE.
-					$content = preg_replace( '#<p>(.+?)</p>#i', "$1\r\n\r\n", $content );
-					$content = preg_replace( '#<br(\s*/)?>#i', "\r\n", $content );
+			if (
+				preg_match(
+					'#' . static::QUICKTAG . '#i',
+					$the_post->post_content
+				)
+			) {
+				continue;
+			}
 
-					// Count paragraphs.
-					$count = preg_match_all( '#\r\n\r\n#', $content, $matches );
+			if (
+				(bool) get_post_meta(
+					$the_post->ID,
+					$this->meta_key_disable_autopaging,
+					true
+				)
+			) {
+				continue;
+			}
 
-					// Keep going, if we have something to count.
-					if ( is_int( $count ) && 0 < $count ) {
-						// Explode content at double (or more) line breaks.
-						$content = explode( "\r\n\r\n", $content );
+			$num_pages = absint(
+				apply_filters(
+					'autopaging_num_pages',
+					absint( $this->num_pages ),
+					$the_post
+				)
+			);
+			$num_words = absint(
+				apply_filters(
+					'autopaging_num_words',
+					absint( $this->num_words ),
+					$the_post
+				)
+			);
 
-						switch ( get_option( $this->option_name_paging_type, $this->paging_type_default ) ) {
-							case 'words':
-								$word_counter = 0;
+			if ( $num_pages < 2 && empty( $num_words ) ) {
+				continue;
+			}
 
-								// Count words per paragraph and break after the paragraph that exceeds the set threshold.
-								foreach ( $content as $index => $paragraph ) {
-									$paragraph_words = count( preg_split( '/\s+/', strip_tags( $paragraph ) ) );
-									$word_counter += $paragraph_words;
-
-									if ( $word_counter >= $num_words ) {
-										$content[ $index ] .= '<!--nextpage-->';
-										$word_counter = 0;
-									} else {
-										continue;
-									}
-								}
-
-								unset( $word_counter );
-								unset( $index );
-								unset( $paragraph );
-								unset( $paragraph_words );
-
-								break;
-
-							case 'pages':
-							default:
-								// Count number of paragraphs content was exploded to.
-								$count = count( $content );
-
-								// Determine when to insert Quicktag.
-								$insert_every = $count / $num_pages;
-								$insert_every_rounded = round( $insert_every );
-
-								// If number of pages is greater than number of paragraphs, put each paragraph on its own page.
-								if ( $num_pages > $count ) {
-									$insert_every_rounded = 1;
-								}
-
-								// Set initial counter position.
-								$i = $count - 1 == $num_pages ? 2 : 1;
-
-								// Loop through content pieces and append Quicktag as is appropriate.
-								foreach ( $content as $key => $value ) {
-									if ( $key + 1 == $count ) {
-										break;
-									}
-
-									if ( ( $key + 1 ) == ( $i * $insert_every_rounded ) ) {
-										$content[ $key ] = $content[ $key ] . '<!--nextpage-->';
-										$i++;
-									}
-								}
-
-								// Clean up.
-								unset( $count );
-								unset( $insert_every );
-								unset( $insert_every_rounded );
-								unset( $key );
-								unset( $value );
-
-								break;
-						}
-
-						// Reunite content.
-						$content = implode( "\r\n\r\n", $content );
-
-						// And, overwrite the original content.
-						$the_post->post_content = $content;
-					}
-
-					// Lastly, clean up.
-					unset( $num_pages );
-					unset( $num_words );
-					unset( $content );
-					unset( $count );
-				}
+			if (
+				function_exists( 'has_blocks' )
+				&& has_blocks( $the_post )
+			) {
+				$this->filter_block_editor_post(
+					$the_post,
+					$paging_type,
+					$num_words,
+					$num_pages
+				);
+			} else {
+				$this->filter_classic_editor_post(
+					$the_post,
+					$paging_type,
+					$num_words,
+					$num_pages
+				);
 			}
 		}
 
 		return $posts;
+	}
+
+	/**
+	 * Add pagination Quicktag to post authored in the Classic Editor.
+	 *
+	 * @param WP_Post|object $the_post    Post object.
+	 * @param string         $paging_type How to split post.
+	 * @param int            $num_words   Number of words to split on.
+	 * @param int            $num_pages   Number of pages to split to.
+	 * @return void
+	 */
+	protected function filter_classic_editor_post(
+		&$the_post,
+		$paging_type,
+		$num_words,
+		$num_pages
+	) {
+		// Start with post content, but alias to protect the raw content.
+		$content = $the_post->post_content;
+
+		// Normalize post content to simplify paragraph counting and automatic paging. Accounts for content that hasn't been cleaned up by TinyMCE.
+		$content = preg_replace( '#<p>(.+?)</p>#i', "$1\r\n\r\n", $content );
+		$content = preg_replace( '#<br(\s*/)?>#i', "\r\n", $content );
+		$content = explode( "\r\n\r\n", $content );
+
+		// Count number of paragraphs content was exploded to.
+		$count = count( $content );
+
+		// Nothing to do, goodbye.
+		if ( $count <= 1 ) {
+			return;
+		}
+
+		switch ( $paging_type ) {
+			case 'words':
+				$word_counter = 0;
+
+				// Count words per paragraph and break after the paragraph that exceeds the set threshold.
+				foreach ( $content as $index => $paragraph ) {
+					$word_counter += mb_strlen(
+						wp_strip_all_tags(
+							$paragraph
+						)
+					);
+
+					if ( $word_counter >= $num_words ) {
+						$content[ $index ] .= static::QUICKTAG;
+						$word_counter = 0;
+					}
+				}
+
+				// Prevent the last page from being empty.
+				$last_page = array_pop( $content );
+				if (
+					static::QUICKTAG ===
+						substr(
+							$last_page,
+							- static::QUICKTAG_LENGTH
+						)
+					) {
+					$content[] = substr(
+						$last_page,
+						0,
+						strlen( $last_page ) - static::QUICKTAG_LENGTH
+					);
+				} else {
+					$content[] = $last_page;
+				}
+
+				break;
+
+			case 'pages':
+			default:
+				$frequency = $this->get_insertion_frequency_by_pages(
+					$count,
+					$num_pages
+				);
+
+				$i = 1;
+
+				// Loop through content pieces and append Quicktag as is appropriate.
+				foreach ( $content as $key => $value ) {
+					if ( $this->is_at_end_for_pages( $key, $count ) ) {
+						break;
+					}
+
+					if (
+						$this->is_insertion_point_for_pages(
+							$key,
+							$i,
+							$frequency
+						)
+					) {
+						$content[ $key ] .= static::QUICKTAG;
+						$i++;
+					}
+				}
+
+				break;
+		}
+
+		// Reunite content.
+		$content = implode( "\r\n\r\n", $content );
+
+		// And, overwrite the original content.
+		$the_post->post_content = $content;
+	}
+
+	/**
+	 * Add pagination block to post authored in the Block Editor.
+	 *
+	 * @param WP_Post $the_post    Post object.
+	 * @param string  $paging_type How to split post.
+	 * @param int     $num_words   Number of words to split on.
+	 * @param int     $num_pages   Number of pages to split to.
+	 * @return void
+	 */
+	protected function filter_block_editor_post(
+		&$the_post,
+		$paging_type,
+		$num_words,
+		$num_pages
+	) {
+		$blocks     = parse_blocks( $the_post->post_content );
+		$new_blocks = array();
+
+		switch ( $paging_type ) {
+			case 'words':
+				$word_count = 0;
+
+				foreach ( $blocks as $block ) {
+					$new_blocks[] = $block;
+
+					if (
+						in_array(
+							$block['blockName'],
+							$this->supported_block_types_for_word_counts,
+							true
+						)
+					) {
+						$word_count += mb_strlen(
+							trim(
+								wp_strip_all_tags(
+									$block['innerHTML']
+								)
+							)
+						);
+
+						if ( $word_count >= $num_words ) {
+							$new_blocks[] = $this->get_parsed_nextpage_block();
+
+							$word_count = 0;
+						}
+					}
+				}
+
+				$last_block = array_pop( $new_blocks );
+				if ( $this->get_parsed_nextpage_block() !== $last_block ) {
+					$new_blocks[] = $last_block;
+				}
+				break;
+
+			case 'pages':
+			default:
+				$count = count( $blocks );
+
+				$frequency = $this->get_insertion_frequency_by_pages(
+					$count,
+					$num_pages
+				);
+
+				$i = 1;
+
+				foreach ( $blocks as $key => $block ) {
+					$new_blocks[] = $block;
+
+					if ( $this->is_at_end_for_pages( $key, $count ) ) {
+						break;
+					}
+
+					if (
+						$this->is_insertion_point_for_pages(
+							$key,
+							$i,
+							$frequency
+						)
+					) {
+						$new_blocks[] = $this->get_parsed_nextpage_block();
+						$i++;
+					}
+				}
+				break;
+		}
+
+		$the_post->post_content = serialize_blocks( $new_blocks );
+	}
+
+	/**
+	 * Determine after how many paragraphs a page break should be inserted.
+	 *
+	 * @param int $count     Total number of paragraphs.
+	 * @param int $num_pages Desired number of pages.
+	 * @return int
+	 */
+	protected function get_insertion_frequency_by_pages( $count, $num_pages ) {
+		$frequency = (int) round( $count / $num_pages );
+
+		// If number of pages is greater than number of paragraphs, put each paragraph on its own page.
+		if ( $num_pages > $count ) {
+			$frequency = 1;
+		}
+
+		return $frequency;
+	}
+
+	/**
+	 * Determine if more page breaks should be inserted.
+	 *
+	 * @param int $key   Current position in array of blocks.
+	 * @param int $count Total number of paragraphs.
+	 * @return bool
+	 */
+	protected function is_at_end_for_pages( $key, $count ) {
+		return ( $key + 1 ) === $count;
+	}
+
+	/**
+	 * Determine if current loop iteration is where a page break is expected.
+	 *
+	 * @param int $loop_key            Current position in array of blocks.
+	 * @param int $insertion_iterator  Current number of page breaks inserted.
+	 * @param int $insertion_frequency After this many blocks a should break be
+	 *                                 inserted.
+	 * @return bool
+	 */
+	protected function is_insertion_point_for_pages(
+		$loop_key,
+		$insertion_iterator,
+		$insertion_frequency
+	) {
+		return ( $loop_key + 1 ) ===
+			( $insertion_iterator * $insertion_frequency );
+	}
+
+	/**
+	 * Create parsed representation of block for insertion in list of post's
+	 * blocks.
+	 *
+	 * @return array
+	 */
+	protected function get_parsed_nextpage_block() {
+		static $block;
+
+		if ( ! $block ) {
+			$_block = parse_blocks(
+				'<!-- wp:nextpage -->
+' . static::QUICKTAG . '
+<!-- /wp:nextpage -->'
+			);
+
+			$block = array_shift( $_block );
+		}
+
+		return $block;
 	}
 }
 
