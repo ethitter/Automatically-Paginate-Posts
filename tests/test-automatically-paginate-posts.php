@@ -6,11 +6,23 @@
  */
 
 /**
+ * Class Test_Automatically_Paginate_Posts.
+ *
  * @coversDefaultClass Automatically_Paginate_Posts
  */
-class SampleTest extends WP_UnitTestCase {
+class Test_Automatically_Paginate_Posts extends WP_UnitTestCase {
+	/**
+	 * Plugin instance.
+	 *
+	 * @var Automatically_Paginate_Posts
+	 */
 	protected $_instance;
 
+	/**
+	 * Prepare tests.
+	 *
+	 * @return void
+	 */
 	public function set_up() {
 		parent::set_up();
 
@@ -18,7 +30,10 @@ class SampleTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test magic getter.
+	 *
 	 * @covers ::__get()
+	 * @returns void
 	 */
 	public function test___get() {
 		$this->assertEquals(
@@ -36,7 +51,10 @@ class SampleTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test modifications to plugin action links.
+	 *
 	 * @covers ::filter_plugin_action_links()
+	 * @returns void
 	 */
 	public function test_filter_plugin_action_links() {
 		$this->assertEmpty(
