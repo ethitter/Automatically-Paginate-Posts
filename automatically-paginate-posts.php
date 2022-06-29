@@ -546,7 +546,9 @@ class Automatically_Paginate_Posts {
 						'Note that if the %1$s Quicktag is used to manually page this post, automatic paging won\'t be applied, regardless of the setting above.',
 						'autopaging'
 					),
-					'<code>' . htmlentities(static::QUICKTAG, ENT_QUOTES ) . '</code>'
+					// No need to escape a class constant.
+					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					'<code>' . htmlentities( static::QUICKTAG, ENT_QUOTES ) . '</code>'
 				);
 			?>
 		</p>
