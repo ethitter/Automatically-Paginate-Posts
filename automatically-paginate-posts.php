@@ -830,6 +830,11 @@ class Automatically_Paginate_Posts {
 						}
 					}
 				}
+
+				$last_block = array_pop( $new_blocks );
+				if ( $this->get_parsed_nextpage_block() !== $last_block ) {
+					$new_blocks[] = $last_block;
+				}
 				break;
 
 			case 'pages':

@@ -154,8 +154,8 @@ class Test_Automatically_Paginate_Posts extends WP_UnitTestCase {
 						'post_content' => "I am a page.\r\n\r\nI should not be paginated.",
 					),
 					'type'      => 'pages',
-					'num_pages' => 2,
-					'num_words' => 2,
+					'num_pages' => 0,
+					'num_words' => 0,
 				),
 			),
 			'Already paginated'       => array(
@@ -166,8 +166,8 @@ class Test_Automatically_Paginate_Posts extends WP_UnitTestCase {
 						'post_content' => "1\r\n\r\n<!--nextpage-->\r\n\r\n2\r\n\r\n3",
 					),
 					'type'      => 'pages',
-					'num_pages' => 2,
-					'num_words' => 2,
+					'num_pages' => 0,
+					'num_words' => 0,
 				),
 			),
 			'Classic post, two pages, split to pages' => array(
@@ -179,7 +179,7 @@ class Test_Automatically_Paginate_Posts extends WP_UnitTestCase {
 					),
 					'type'      => 'pages',
 					'num_pages' => 2,
-					'num_words' => 2,
+					'num_words' => 0,
 				),
 			),
 			'Classic post, three pages, split to pages' => array(
@@ -191,7 +191,7 @@ class Test_Automatically_Paginate_Posts extends WP_UnitTestCase {
 					),
 					'type'      => 'pages',
 					'num_pages' => 3,
-					'num_words' => 2,
+					'num_words' => 0,
 				),
 			),
 			'Classic post, one page, split on words' => array(
@@ -202,7 +202,7 @@ class Test_Automatically_Paginate_Posts extends WP_UnitTestCase {
 						'post_content' => "1\r\n\r\n2\r\n\r\n3\r\n\r\n4",
 					),
 					'type'      => 'words',
-					'num_pages' => 2,
+					'num_pages' => 0,
 					'num_words' => 5,
 				),
 			),
@@ -214,7 +214,7 @@ class Test_Automatically_Paginate_Posts extends WP_UnitTestCase {
 						'post_content' => "1\r\n\r\n2\r\n\r\n3\r\n\r\n4",
 					),
 					'type'      => 'words',
-					'num_pages' => 2,
+					'num_pages' => 0,
 					'num_words' => 2,
 				),
 			),
@@ -226,7 +226,148 @@ class Test_Automatically_Paginate_Posts extends WP_UnitTestCase {
 						'post_content' => "1\r\n\r\n2\r\n\r\n3\r\n\r\n4",
 					),
 					'type'      => 'words',
+					'num_pages' => 0,
+					'num_words' => 1,
+				),
+			),
+			'Block-editor post, two pages, split to pages' => array(
+				'<!-- wp:paragraph -->
+<p>1</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>2</p>
+<!-- /wp:paragraph --><!-- wp:nextpage -->
+<!--nextpage-->
+<!-- /wp:nextpage -->
+
+<!-- wp:paragraph -->
+<p>3</p>
+<!-- /wp:paragraph -->',
+				array(
+					'post_args' => array(
+						'post_type'    => 'post',
+						'post_content' => '<!-- wp:paragraph -->
+<p>1</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>2</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>3</p>
+<!-- /wp:paragraph -->',
+					),
+					'type'      => 'pages',
 					'num_pages' => 2,
+					'num_words' => 0,
+				),
+			),
+			'Block-editor post, three pages, split to pages' => array(
+				'<!-- wp:paragraph -->
+<p>1</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:nextpage -->
+<!--nextpage-->
+<!-- /wp:nextpage --><!-- wp:paragraph -->
+<p>2</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:nextpage -->
+<!--nextpage-->
+<!-- /wp:nextpage --><!-- wp:paragraph -->
+<p>3</p>
+<!-- /wp:paragraph -->',
+				array(
+					'post_args' => array(
+						'post_type'    => 'post',
+						'post_content' => '<!-- wp:paragraph -->
+<p>1</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>2</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>3</p>
+<!-- /wp:paragraph -->',
+					),
+					'type'      => 'pages',
+					'num_pages' => 3,
+					'num_words' => 0,
+				),
+			),
+
+			'Block-editor post, two pages, split on words' => array(
+				'<!-- wp:paragraph -->
+<p>1</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>2</p>
+<!-- /wp:paragraph --><!-- wp:nextpage -->
+<!--nextpage-->
+<!-- /wp:nextpage -->
+
+<!-- wp:paragraph -->
+<p>3</p>
+<!-- /wp:paragraph -->',
+				array(
+					'post_args' => array(
+						'post_type'    => 'post',
+						'post_content' => '<!-- wp:paragraph -->
+<p>1</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>2</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>3</p>
+<!-- /wp:paragraph -->',
+					),
+					'type'      => 'words',
+					'num_pages' => 0,
+					'num_words' => 2,
+				),
+			),
+			'Block-editor post, three pages, split on words' => array(
+				'<!-- wp:paragraph -->
+<p>1</p>
+<!-- /wp:paragraph --><!-- wp:nextpage -->
+<!--nextpage-->
+<!-- /wp:nextpage -->
+
+<!-- wp:paragraph -->
+<p>2</p>
+<!-- /wp:paragraph --><!-- wp:nextpage -->
+<!--nextpage-->
+<!-- /wp:nextpage -->
+
+<!-- wp:paragraph -->
+<p>3</p>
+<!-- /wp:paragraph -->',
+				array(
+					'post_args' => array(
+						'post_type'    => 'post',
+						'post_content' => '<!-- wp:paragraph -->
+<p>1</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>2</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>3</p>
+<!-- /wp:paragraph -->',
+					),
+					'type'      => 'words',
+					'num_pages' => 0,
 					'num_words' => 1,
 				),
 			),
