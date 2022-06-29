@@ -35,6 +35,16 @@ require_once dirname( __FILE__ ) . '/inc/class-block-editor.php';
  */
 class Automatically_Paginate_Posts {
 	/**
+	 * WordPress Quicktag that creates pagination.
+	 */
+	protected const QUICKTAG = '<!--nextpage-->';
+
+	/**
+	 * String length of nextpage Quicktag.
+	 */
+	protected const QUICKTAG_LENGTH = 15;
+
+	/**
 	 * Supported post types.
 	 *
 	 * @var array
@@ -711,9 +721,27 @@ class Automatically_Paginate_Posts {
 					);
 
 					if ( $word_counter >= $num_words ) {
-						$content[ $index ] .= '<!--nextpage-->';
+						$content[ $index ] .= static::QUICKTAG;
 						$word_counter = 0;
 					}
+				}
+
+				// Prevent the last page from being empty.
+				$last_page = array_pop( $content );
+				if (
+					static::QUICKTAG ===
+						substr(
+							$last_page,
+							- static::QUICKTAG_LENGTH
+						)
+					) {
+					$content[] = substr(
+						$last_page,
+						0,
+						strlen( $last_page ) - static::QUICKTAG_LENGTH
+					);
+				} else {
+					$content[] = $last_page;
 				}
 
 				break;

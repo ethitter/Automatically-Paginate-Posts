@@ -111,7 +111,12 @@ class Test_Automatically_Paginate_Posts extends WP_UnitTestCase {
 	public function test_filter_the_posts( $expected, $input ) {
 		$post = $this->factory->post->create_and_get( $input['post_args'] );
 
-		update_option( 'autopaging_paging_type', $input['type'] );
+		add_filter(
+			'pre_option_pages',
+			static function() use( $input ) {
+				return $input['type'];
+			}
+		);
 		add_filter(
 			'autopaging_num_pages',
 			static function() use( $input ) {
@@ -162,7 +167,7 @@ class Test_Automatically_Paginate_Posts extends WP_UnitTestCase {
 					'num_words' => 2,
 				),
 			),
-			'Classic post, two pages' => array(
+			'Classic post, two pages, split to pages' => array(
 				"1\r\n\r\n2<!--nextpage-->\r\n\r\n3",
 				array(
 					'post_args' => array(
@@ -174,7 +179,7 @@ class Test_Automatically_Paginate_Posts extends WP_UnitTestCase {
 					'num_words' => 2,
 				),
 			),
-			'Classic post, three pages' => array(
+			'Classic post, three pages, split to pages' => array(
 				"1<!--nextpage-->\r\n\r\n2<!--nextpage-->\r\n\r\n3",
 				array(
 					'post_args' => array(
@@ -184,6 +189,42 @@ class Test_Automatically_Paginate_Posts extends WP_UnitTestCase {
 					'type'      => 'pages',
 					'num_pages' => 3,
 					'num_words' => 2,
+				),
+			),
+			'Classic post, one page, split on words' => array(
+				"1\r\n\r\n2\r\n\r\n3\r\n\r\n4",
+				array(
+					'post_args' => array(
+						'post_type'    => 'post',
+						'post_content' => "1\r\n\r\n2\r\n\r\n3\r\n\r\n4",
+					),
+					'type'      => 'words',
+					'num_pages' => 2,
+					'num_words' => 5,
+				),
+			),
+			'Classic post, two pages, split on words' => array(
+				"1\r\n\r\n2<!--nextpage-->\r\n\r\n3\r\n\r\n4",
+				array(
+					'post_args' => array(
+						'post_type'    => 'post',
+						'post_content' => "1\r\n\r\n2\r\n\r\n3\r\n\r\n4",
+					),
+					'type'      => 'words',
+					'num_pages' => 2,
+					'num_words' => 2,
+				),
+			),
+			'Classic post, three pages, split on words' => array(
+				"1<!--nextpage-->\r\n\r\n2<!--nextpage-->\r\n\r\n3<!--nextpage-->\r\n\r\n4",
+				array(
+					'post_args' => array(
+						'post_type'    => 'post',
+						'post_content' => "1\r\n\r\n2\r\n\r\n3\r\n\r\n4",
+					),
+					'type'      => 'words',
+					'num_pages' => 2,
+					'num_words' => 1,
 				),
 			),
 		);
