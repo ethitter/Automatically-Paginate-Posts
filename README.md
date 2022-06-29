@@ -10,7 +10,7 @@ Donate link:
 
 Automatically paginate posts by inserting the `&lt;!--nextpage--&gt;` Quicktag.
 
-## DESCRIPTION ##
+## Description ##
 
 Automatically paginate WordPress content by inserting the `&lt;!--nextpage--&gt;` Quicktag at intervals controlled by plugin's settings.
 
