@@ -64,7 +64,7 @@ class Block_Editor {
 					'default'           => false,
 					'description'       => __(
 						'Whether or not to disable pagination for this post.',
-						'autopaging'
+						'automatically-paginate-posts'
 					),
 					'type'              => 'boolean',
 					'sanitize_callback' => static function ( $value ) {
@@ -140,7 +140,7 @@ class Block_Editor {
 
 		wp_set_script_translations(
 			$asset_handle,
-			'autopaging',
+			'automatically-paginate-posts',
 			$plugin_base_dir . '/languages'
 		);
 	}
