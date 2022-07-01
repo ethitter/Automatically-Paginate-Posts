@@ -1,5 +1,5 @@
 {
-  "name"        : "ethitter/wp-revision-control",
+  "name"        : "ethitter/automatically-paginate-posts",
   "description" : "Automatically paginate posts by inserting the `<!--nextpage-->` Quicktag.",
   "homepage"    : "https://ethitter.com/",
   "type"        : "wordpress-plugin",
