@@ -2,10 +2,10 @@
 # This file is distributed under the same license as the Automatically Paginate Posts package.
 msgid ""
 msgstr ""
-"Project-Id-Version: Automatically Paginate Posts 0.3\n"
+"Project-Id-Version: Automatically Paginate Posts 0.3.1\n"
 "Report-Msgid-Bugs-To: "
 "https://wordpress.org/support/plugin/automatically-paginate-posts\n"
-"POT-Creation-Date: 2022-06-29 04:55:16+00:00\n"
+"POT-Creation-Date: 2022-07-01 04:24:09+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
