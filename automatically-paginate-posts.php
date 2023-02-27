@@ -323,7 +323,7 @@ class Automatically_Paginate_Posts {
 		register_setting( 'reading', $this->option_name_num_pages, array( $this, 'sanitize_num_pages' ) );
 		register_setting( 'reading', $this->option_name_num_words, array( $this, 'sanitize_num_words' ) );
 
-		add_settings_section( 'autopaging', __( 'Automatically Paginate Posts', 'automatically-paginate-posts' ), '__return_false', 'reading' );
+		add_settings_section( 'autopaging', _x( 'Automatically Paginate Posts', 'Settings Section', 'automatically-paginate-posts' ), '__return_false', 'reading' );
 		add_settings_field( 'autopaging-post-types', __( 'Supported post types:', 'automatically-paginate-posts' ), array( $this, 'settings_field_post_types' ), 'reading', 'autopaging' );
 		add_settings_field( 'autopaging-paging-type', __( 'Split post by:', 'automatically-paginate-posts' ), array( $this, 'settings_field_paging_type' ), 'reading', 'autopaging' );
 	}
