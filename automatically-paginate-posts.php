@@ -303,7 +303,7 @@ class Automatically_Paginate_Posts {
 	 */
 	public function filter_plugin_action_links( $actions, $file ) {
 		if ( false !== strpos( $file, basename( __FILE__ ) ) ) {
-			$actions['settings'] = '<a href="' . admin_url( 'options-reading.php' ) . '">Settings</a>';
+			$actions['settings'] = '<a href="' . admin_url( 'options-reading.php' ) . '">' . __( 'Settings', 'automatically-paginate-posts' ). '</a>';
 		}
 
 		return $actions;
